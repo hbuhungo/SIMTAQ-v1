@@ -1,0 +1,3206 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SIMTAQ - Sistem Informasi Monitoring Tahfiz Al-Qur’an</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- YouTube IFrame API untuk Pemutar Murotal Link YouTube -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Outfit"', 'sans-serif'],
+          },
+          colors: {
+            madrasah: { 50: '#ecfdf5', 100: '#d1fae5', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#0f6832' },
+            abulyatama: { 50: '#f0f9ff', 100: '#e0f2fe', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#1e40af' },
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- =====================================================================
+       BLOK 1: CSS STYLING (WELCOME SCREEN, TRANSISI & PANEL KONTROL MUROTAL)
+       ===================================================================== -->
+  <style>
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Kelas Utilitas Visibilitas & Transisi Halus */
+    .hidden {
+      display: none !important;
+    }
+    .fade-out {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.65s ease;
+    }
+    .fade-in {
+      animation: simtaqFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes simtaqFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Desain Welcome Screen Imersif */
+    .welcome-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      background: radial-gradient(circle at top right, rgba(2, 132, 199, 0.35), transparent 55%),
+                  radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.35), transparent 55%),
+                  linear-gradient(135deg, #042f1a 0%, #064e3b 48%, #0c4a6e 100%);
+      color: #ffffff;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.65s ease, visibility 0.65s ease;
+    }
+    .welcome-card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 1.75rem;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Tipografi Elegan SIMTAQ */
+    .bg-brand-gradient {
+      background: linear-gradient(135deg, #0f6832 0%, #0d9488 50%, #0284c7 100%);
+    }
+    .simtaq-brand-title {
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #0f6832 0%, #059669 45%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 1px 1px rgba(15, 104, 50, 0.08));
+    }
+    .simtaq-welcome-title {
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.06em;
+      background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 50%, #bae6fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Styling Panel Kontrol Murotal & Slider Volume */
+    .audio-controller-wrapper {
+      background: linear-gradient(90deg, #0f172a 0%, #064e3b 50%, #0c4a6e 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      outline: none;
+      cursor: pointer;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #10b981;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    /* Animasi Indikator Gelombang Suara Murotal */
+    .eq-bar {
+      display: inline-block;
+      width: 3px;
+      background-color: #34d399;
+      border-radius: 2px;
+      animation: eqBounce 1s infinite ease-in-out;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+    .eq-paused .eq-bar { animation-play-state: paused; height: 4px !important; }
+    @keyframes eqBounce {
+      0%, 100% { height: 4px; }
+      50% { height: 13px; }
+    }
+
+    /* Kontainer YouTube Player Tersembunyi / Mini Preview */
+    .yt-hidden-frame {
+      position: fixed;
+      bottom: -9999px;
+      right: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .yt-visible-frame {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      width: 280px;
+      height: 158px;
+      z-index: 60;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 2px solid #10b981;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      background: #000;
+    }
+
+    @media print {
+      header, footer, .no-print, .welcome-screen, .audio-controller-wrapper, #ytWrapperBox {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-emerald-600 selection:text-white">
+
+  <!-- =====================================================================
+       BLOK 2: HTML STRUCTURE (WELCOME SCREEN, ENGINE MUROTAL & MAIN APP)
+       ===================================================================== -->
+
+  <!-- Elemen Audio Tunggal (Untuk Link MP3) & Kontainer YouTube IFrame API (Untuk Link YouTube) -->
+  <audio id="bg-music" preload="auto"></audio>
+  <div id="ytWrapperBox" class="yt-hidden-frame no-print">
+    <div id="yt-murotal-player"></div>
+  </div>
+
+  <!-- 1. WELCOME SCREEN OVERLAY (Pemicu Anti-Blokir Browser Modern) -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="welcome-card space-y-5">
+      <!-- Logo Kolaborasi Madrasah & Yayasan -->
+      <div class="flex items-center justify-center space-x-3">
+        <img src="https://iili.io/nPt9Ol4.jpg" alt="Logo MAN 2 Kab. Gorontalo" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-emerald-400 shadow-lg bg-white">
+        <div class="h-10 w-0.5 bg-white/25 rounded-full"></div>
+        <img src="https://iili.io/nPsE7oX.jpg" alt="Logo Yayasan Abulyatama" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-sky-400 shadow-lg bg-white">
+      </div>
+
+      <!-- Judul & Deskripsi Singkat -->
+      <div class="space-y-1.5">
+        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 text-emerald-200 text-[11px] font-bold border border-white/15">
+          <i class="fa-solid fa-mosque"></i>
+          <span>Program Tahfidz Al-Qur’an Digital</span>
+        </span>
+        <h1 class="text-3xl sm:text-4xl font-black simtaq-welcome-title tracking-wider">SIMTAQ</h1>
+        <p class="text-xs sm:text-sm font-bold text-emerald-100">Sistem Informasi Monitoring Tahfiz Al-Qur’an</p>
+        <p class="text-[11px] sm:text-xs text-slate-200/90 leading-relaxed pt-1">
+          Kolaborasi resmi <strong>MAN 2 Kabupaten Gorontalo</strong> bersama <strong>Yayasan Abulyatama Indonesia Gorontalo</strong>. Dilengkapi fitur pemantauan capaian juz, rekam video setoran, dan lantunan Murotal Al-Qur’an.
+        </p>
+      </div>
+
+      <!-- Informasi Murotal Siap Putar -->
+      <div class="p-3 rounded-2xl bg-black/25 border border-white/10 flex items-center justify-center space-x-2.5 text-left">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+          <i class="fa-solid fa-book-quran text-xs"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[11px] font-extrabold text-white truncate">Lantunan Murotal Al-Qur’an (YouTube &amp; Audio)</p>
+          <p class="text-[10px] text-slate-300 truncate">Klik tombol di bawah untuk memulai aplikasi &amp; memutar Murotal</p>
+        </div>
+      </div>
+
+      <!-- Tombol Utama Pemicu Interaksi & Murotal (.play()) -->
+      <button id="btnEnterApp" onclick="enterApplicationWithAudio()" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-950/50 transition transform active:scale-98 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-circle-play text-base"></i>
+        <span>Mulai / Masuk Aplikasi</span>
+      </button>
+
+      <p class="text-[10px] text-slate-300/80 font-semibold pt-1">
+        Pengembang Aplikasi : Herman Susanto Buhungo, S.Pd.
+      </p>
+    </div>
+  </div>
+
+  <!-- 2. MAIN APPLICATION (Disembunyikan di Awal dengan class="main-app hidden") -->
+  <div id="mainAppWrapper" class="main-app hidden min-h-screen flex flex-col justify-between">
+
+    <!-- ================= PANEL KONTROL MUROTAL TERINTEGRASI ================= -->
+    <div class="audio-controller-wrapper text-white no-print sticky top-0 z-50 shadow-md">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+
+          <!-- Info Murotal Aktif & Indikator Equalizer -->
+          <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+            <div id="eqIndicator" class="flex items-end space-x-0.5 h-3.5 px-1.5 py-0.5 rounded bg-white/10 shrink-0 eq-paused">
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center space-x-1.5">
+                <span id="currentTrackSourceBadge" class="px-1.5 py-0.2 rounded bg-emerald-500/30 border border-emerald-400/40 text-[9px] font-black text-emerald-200 uppercase shrink-0">Murotal</span>
+                <p class="text-[11px] sm:text-xs font-extrabold text-emerald-200 truncate" id="currentTrackTitle">Memuat Murotal...</p>
+              </div>
+              <p class="text-[9px] sm:text-[10px] text-slate-300 truncate" id="currentTrackArtist">Qari Murotal SIMTAQ</p>
+            </div>
+          </div>
+
+          <!-- Tombol Navigasi Murotal: Prev, Play/Pause, Next, Mute, Slider Volume, & Toggle Playlist -->
+          <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+            <!-- Tombol Previous -->
+            <button onclick="prevTrack()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs transition" title="Murotal Sebelumnya">
+              <i class="fa-solid fa-backward-step"></i>
+            </button>
+
+            <!-- Tombol Play / Pause -->
+            <button onclick="togglePlayPause()" id="btnPlayPause" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center text-xs shadow-xs transition" title="Putar / Jeda Murotal">
+              <i class="fa-solid fa-play" id="iconPlayPause"></i>
+            </button>
+
+            <!-- Tombol Next -->
+            <button onclick="nextTrack()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs transition" title="Murotal Berikutnya">
+              <i class="fa-solid fa-forward-step"></i>
+            </button>
+
+            <!-- Tombol Mute / Unmute Dinamis -->
+            <button onclick="toggleMuteAudio()" id="btnMuteToggle" class="px-2.5 h-7 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center space-x-1 text-[11px] font-bold transition" title="Bisukan / Bunyikan Suara">
+              <i class="fa-solid fa-volume-high text-emerald-300" id="iconMuteStatus"></i>
+              <span id="textMuteStatus" class="hidden sm:inline">Suara</span>
+            </button>
+
+            <!-- Slider Volume (0 - 100) -->
+            <div class="hidden sm:flex items-center space-x-1.5 bg-white/10 px-2.5 py-1 rounded-lg">
+              <input type="range" id="volumeSlider" min="0" max="100" value="75" class="volume-slider w-16 md:w-20" oninput="handleVolumeChange(this.value)">
+              <span id="volumeValueText" class="text-[10px] font-extrabold text-emerald-200 w-7 text-right">75%</span>
+            </div>
+
+            <!-- Tombol Buka Daftar Putar Murotal (Playlist) -->
+            <button onclick="togglePlaylistDrawer()" class="px-2.5 h-7 sm:h-8 rounded-lg bg-sky-500/30 hover:bg-sky-500/50 border border-sky-400/30 flex items-center space-x-1 text-[11px] font-extrabold transition">
+              <i class="fa-solid fa-book-quran text-sky-200"></i>
+              <span class="hidden xs:inline">Murotal</span>
+              <span id="playlistBadgeCount" class="px-1.5 py-0.2 rounded-full bg-sky-500 text-white text-[9px]">3</span>
+            </button>
+
+            <!-- Tombol Khusus Admin: Kelola Murotal -->
+            <button onclick="openMusicAdminModal()" id="btnAdminManageMusic" class="hidden px-2.5 h-7 sm:h-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center space-x-1 text-[11px] font-black transition" title="Tambah / Edit / Hapus Link YouTube Murotal (Admin)">
+              <i class="fa-brands fa-youtube text-rose-700"></i>
+              <span class="hidden md:inline">Kelola Murotal</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Drawer Playlist Murotal & Kontrol Volume Smartphone -->
+        <div id="playlistDrawer" class="hidden mt-2.5 pt-2.5 border-t border-white/15 space-y-2.5">
+          <!-- Slider Volume Khusus Layar Smartphone -->
+          <div class="flex sm:hidden items-center justify-between gap-3 bg-white/10 px-3 py-2 rounded-xl">
+            <span class="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-volume-low text-emerald-300"></i> Volume Murotal
+            </span>
+            <div class="flex items-center space-x-2 flex-1 max-w-[180px]">
+              <input type="range" id="volumeSliderMobile" min="0" max="100" value="75" class="volume-slider w-full" oninput="handleVolumeChange(this.value)">
+              <span id="volumeValueTextMobile" class="text-[10px] font-extrabold text-emerald-200 w-8 text-right">75%</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300 px-1">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-emerald-300">
+              <i class="fa-solid fa-book-open-reader mr-1"></i>Daftar Putar Murotal Al-Qur’an (Mendukung Link YouTube &amp; MP3)
+            </span>
+            <div class="flex items-center space-x-3">
+              <button onclick="toggleYouTubeMiniVideo()" id="btnToggleYtPreview" class="hidden text-sky-300 hover:underline font-extrabold text-[11px]">
+                <i class="fa-brands fa-youtube text-rose-400 mr-1"></i><span id="textToggleYtPreview">Tampilkan Video YouTube</span>
+              </button>
+              <button onclick="openMusicAdminModal()" id="btnDrawerAddMusic" class="hidden text-amber-300 hover:underline font-extrabold text-[11px]">
+                <i class="fa-solid fa-plus mr-1"></i>Kelola Link YouTube Murotal
+              </button>
+            </div>
+          </div>
+
+          <!-- Daftar Murotal (Render Dinamis) -->
+          <div id="playlistItemsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= HEADER & NAVBAR APLIKASI ================= -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-[44px] sm:top-[48px] z-40 shadow-xs no-print">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+        
+        <!-- Identitas Logo & Nama SIMTAQ Elegan -->
+        <div class="flex items-center space-x-2.5 cursor-pointer min-w-0" onclick="handleLogoClick()">
+          <div class="flex items-center -space-x-1.5 sm:space-x-1.5 shrink-0">
+            <img src="https://iili.io/nPt9Ol4.jpg" alt="Logo MAN 2 Kab. Gorontalo" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-emerald-500 shadow-xs bg-white">
+            <img src="https://iili.io/nPsE7oX.jpg" alt="Logo Yayasan Abulyatama" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-sky-500 shadow-xs bg-white">
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center">
+              <span class="text-xl sm:text-2xl font-black simtaq-brand-title leading-none">SIMTAQ</span>
+            </div>
+            <p class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">Sistem Informasi Monitoring Tahfiz Al-Qur’an</p>
+          </div>
+        </div>
+
+        <!-- Navigasi Desktop (Halaman Publik) -->
+        <nav id="publicDesktopNav" class="hidden md:flex items-center space-x-1">
+          <button onclick="switchView('beranda')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-extrabold transition text-emerald-800 bg-emerald-50" data-target="beranda">Beranda</button>
+          <button onclick="switchView('tentang')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-emerald-700 hover:bg-emerald-50" data-target="tentang">Tentang</button>
+          <button onclick="switchView('fitur')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-emerald-700 hover:bg-emerald-50" data-target="fitur">Fitur</button>
+          <button onclick="switchView('statistik')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-emerald-700 hover:bg-emerald-50" data-target="statistik">Statistik</button>
+        </nav>
+
+        <!-- Tombol Aksi Kanan & Tombol Garis 3 (Hamburger) -->
+        <div class="flex items-center space-x-2 shrink-0">
+          <div id="authHeaderContainer">
+            <button onclick="openLoginModal()" class="px-3.5 py-2 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-sm hover:opacity-95 transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <span>Masuk</span>
+            </button>
+          </div>
+
+          <!-- Tombol Garis 3 (Hamburger Menu) ke Bawah untuk Smartphone -->
+          <button onclick="toggleHamburgerMenu()" class="p-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 transition flex items-center justify-center" aria-label="Menu Utama">
+            <i class="fa-solid fa-bars text-base" id="hamburgerIcon"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Daftar Menu Utama Vertikal ke Bawah (Muncul Saat Klik Tombol Garis 3) -->
+      <div id="hamburgerDropdown" class="hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 shadow-xl">
+        <div class="max-w-7xl mx-auto space-y-1.5" id="hamburgerMenuList"></div>
+      </div>
+    </header>
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <main class="flex-grow w-full overflow-x-hidden">
+
+      <!-- 1. HALAMAN BERANDA (PUBLIK) -->
+      <div id="view-beranda" class="view-section">
+        <section class="relative py-8 sm:py-14 lg:py-20 bg-gradient-to-b from-emerald-50/60 via-white to-sky-50/40">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+              
+              <!-- Kolom Kiri Hero -->
+              <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-100/90 text-emerald-900 text-[11px] font-extrabold">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
+                  <span>MAN 2 Kab. Gorontalo × Yayasan Abulyatama Indonesia</span>
+                </div>
+
+                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                  Sistem Informasi Monitoring <span class="simtaq-brand-title">Tahfiz Al-Qur’an</span>
+                </h1>
+
+                <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  Pantau progres capaian juz, setoran hafalan harian, rekaman video setoran santri, hingga rapor evaluasi secara digital disertai lantunan Murotal Al-Qur’an.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 pt-1">
+                  <button onclick="openLoginModal()" class="px-6 py-3.5 rounded-2xl bg-brand-gradient text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-emerald-700/20 hover:opacity-95 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Masuk ke Aplikasi SIMTAQ</span>
+                  </button>
+                  <button onclick="switchView('fitur')" class="px-6 py-3.5 rounded-2xl bg-white text-slate-700 text-xs sm:text-sm font-extrabold border border-slate-200 hover:bg-slate-50 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-layer-group text-emerald-600"></i>
+                    <span>Lihat Fitur Unggulan</span>
+                  </button>
+                </div>
+
+                <!-- Statistik Cepat -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4">
+                  <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center">
+                    <h4 class="text-lg sm:text-xl font-black text-emerald-700" id="statSantriCount">2</h4>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Santri Aktif</p>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center">
+                    <h4 class="text-lg sm:text-xl font-black text-sky-700" id="statUstadzCount">2</h4>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Ustadz/Ustadzah</p>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center">
+                    <h4 class="text-lg sm:text-xl font-black text-indigo-700" id="statSetoranCount">3</h4>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Total Setoran</p>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center">
+                    <h4 class="text-lg sm:text-xl font-black text-amber-600" id="statAvgScore">92.3</h4>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Rata-Rata Nilai</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Kolom Kanan Kartu Identitas Instansi -->
+              <div class="lg:col-span-5">
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-xl border border-slate-200/90 space-y-5">
+                  <div class="flex items-center justify-center space-x-4 py-2">
+                    <img src="https://iili.io/nPt9Ol4.jpg" alt="Logo MAN 2" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-emerald-500 shadow-md">
+                    <div class="h-12 w-0.5 bg-slate-200"></div>
+                    <img src="https://iili.io/nPsE7oX.jpg" alt="Logo Yayasan" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-sky-500 shadow-md">
+                  </div>
+
+                  <div class="text-center space-y-1">
+                    <h3 class="text-lg sm:text-xl font-black simtaq-brand-title">SIMTAQ DIGITAL</h3>
+                    <p class="text-xs font-bold text-slate-700">MAN 2 Kabupaten Gorontalo</p>
+                    <p class="text-[11px] font-semibold text-sky-700">Bekerja Sama dengan Yayasan Abulyatama Indonesia Gorontalo</p>
+                  </div>
+
+                  <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                      <span><i class="fa-solid fa-book-quran text-emerald-400 mr-1.5"></i>Rekam Video &amp; Murotal YouTube</span>
+                      <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Aktif</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                      Setiap setoran hafalan santri dilengkapi penilaian kelancaran, tajwid, dokumentasi video Google Drive, serta pemutar Murotal Al-Qur’an terintegrasi YouTube.
+                    </p>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                    <button onclick="openLoginWithRole('ortu')" class="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold border border-emerald-200 transition">
+                      <i class="fa-solid fa-people-roof block text-emerald-600 text-sm mb-1"></i>Orang Tua
+                    </button>
+                    <button onclick="openLoginWithRole('ustadz')" class="p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 font-bold border border-sky-200 transition">
+                      <i class="fa-solid fa-chalkboard-user block text-sky-600 text-sm mb-1"></i>Ustadz/h
+                    </button>
+                    <button onclick="openLoginWithRole('admin')" class="p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold border border-indigo-200 transition">
+                      <i class="fa-solid fa-user-shield block text-indigo-600 text-sm mb-1"></i>Admin
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 2. HALAMAN TENTANG PROGRAM -->
+      <div id="view-tentang" class="view-section hidden py-8 sm:py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+          <div class="bg-white p-5 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row items-center gap-4 pb-4 border-b border-slate-100 text-center sm:text-left">
+              <div class="flex items-center space-x-2 shrink-0">
+                <img src="https://iili.io/nPt9Ol4.jpg" class="w-14 h-14 rounded-full object-cover border border-emerald-400">
+                <img src="https://iili.io/nPsE7oX.jpg" class="w-14 h-14 rounded-full object-cover border border-sky-400">
+              </div>
+              <div>
+                <h2 class="text-lg sm:text-xl font-black text-slate-900">Kolaborasi Program Tahfidz Al-Qur’an</h2>
+                <p class="text-xs text-slate-500 font-semibold">MAN 2 Kabupaten Gorontalo &amp; Yayasan Abulyatama Indonesia Gorontalo</p>
+              </div>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <strong>SIMTAQ (Sistem Informasi Monitoring Tahfiz Al-Qur’an)</strong> dirancang untuk memfasilitasi pemantauan hafalan Al-Qur’an para santri secara akurat dan transparan. Orang Tua dapat memantau langsung rekaman video setoran putra-putrinya dari rumah sambil mendengarkan lantunan Murotal Al-Qur’an pilihan.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. HALAMAN FITUR UNGGULAN -->
+      <div id="view-fitur" class="view-section hidden py-8 sm:py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+          <div class="text-center space-y-1">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900">Fitur Unggulan SIMTAQ</h2>
+            <p class="text-xs text-slate-500">Dirancang responsif untuk layar Smartphone maupun Laptop</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="p-5 bg-white rounded-2xl border border-slate-200 space-y-2">
+              <i class="fa-solid fa-video text-rose-600 text-lg"></i>
+              <h3 class="font-extrabold text-sm text-slate-900">Studio Rekam Video Setoran</h3>
+              <p class="text-slate-600">Rekam langsung video santri saat menyetor hafalan menggunakan kamera HP/Laptop dan simpan otomatis ke Google Drive.</p>
+            </div>
+            <div class="p-5 bg-white rounded-2xl border border-slate-200 space-y-2">
+              <i class="fa-brands fa-youtube text-rose-600 text-lg"></i>
+              <h3 class="font-extrabold text-sm text-slate-900">Murotal YouTube &amp; MP3</h3>
+              <p class="text-slate-600">Admin dapat menambahkan link YouTube Murotal Al-Qur’an maupun file MP3 lengkap dengan pengatur volume dan playlist.</p>
+            </div>
+            <div class="p-5 bg-white rounded-2xl border border-slate-200 space-y-2">
+              <i class="fa-solid fa-user-lock text-emerald-600 text-lg"></i>
+              <h3 class="font-extrabold text-sm text-slate-900">Pemisahan Hak Akses 3 Peran</h3>
+              <p class="text-slate-600">Hak akses terpisah secara ketat antara Orang Tua, Ustadz/Ustadzah pembimbing, dan Administrator.</p>
+            </div>
+            <div class="p-5 bg-white rounded-2xl border border-slate-200 space-y-2">
+              <i class="fa-solid fa-print text-sky-600 text-lg"></i>
+              <h3 class="font-extrabold text-sm text-slate-900">Rapor Tahfidz Resmi Siap Cetak</h3>
+              <p class="text-slate-600">Dilengkapi kop resmi dan tanda tangan Kepala Madrasah, Pimpinan Yayasan, serta Koordinator Tahfidz.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. HALAMAN STATISTIK PUBLIK -->
+      <div id="view-statistik" class="view-section hidden py-8 sm:py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-4">
+            <h2 class="text-lg sm:text-xl font-black text-slate-900">Ringkasan Capaian Hafalan</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                <div class="text-2xl font-black text-emerald-700" id="pubSantri">2</div>
+                <div class="text-[11px] font-bold text-slate-600">Santri Aktif</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-sky-50 border border-sky-100">
+                <div class="text-2xl font-black text-sky-700" id="pubUstadz">2</div>
+                <div class="text-[11px] font-bold text-slate-600">Ustadz/Ustadzah</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-indigo-50 border border-indigo-100">
+                <div class="text-2xl font-black text-indigo-700" id="pubSetoran">3</div>
+                <div class="text-[11px] font-bold text-slate-600">Setoran Tercatat</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                <div class="text-2xl font-black text-amber-700" id="pubAvg">92.3</div>
+                <div class="text-[11px] font-bold text-slate-600">Rata-Rata Nilai</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. DASHBOARD APLIKASI (SETELAH LOGIN) -->
+      <div id="view-dashboard" class="view-section hidden py-4 sm:py-6">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-5">
+
+          <!-- Banner Sambutan Pengguna -->
+          <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-sky-950 rounded-3xl p-4 sm:p-6 text-white shadow-lg no-print">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div class="space-y-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span id="userRoleBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase border border-emerald-400/30">Administrator</span>
+                  <span id="syncStatusBadge" class="text-[10px] text-sky-300 font-semibold flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Database Siap
+                  </span>
+                </div>
+                <h2 class="text-base sm:text-xl font-black truncate" id="welcomeUserText">Selamat Datang, Administrator</h2>
+                <p class="text-[11px] text-slate-300" id="welcomeSubText">Akses penuh pengelolaan data SIMTAQ MAN 2 Kab. Gorontalo × Abulyatama</p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button onclick="openSetoranModal()" id="btnQuickSetoran" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-video"></i><span>Rekam / Input Setoran</span>
+                </button>
+                <button onclick="openMusicAdminModal()" id="btnQuickMusic" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-1.5">
+                  <i class="fa-brands fa-youtube"></i><span>Kelola Murotal</span>
+                </button>
+                <button onclick="openPejabatModal()" id="btnQuickPejabat" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-user-pen"></i><span>Edit Pimpinan</span>
+                </button>
+                <button onclick="handleLogout()" class="px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-power-off"></i><span>Keluar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bar Pemilihan Menu Dashboard:
+               - Di Smartphone: Tombol Garis 3 Vertikal ke Bawah (Tanpa geser kiri-kanan)
+               - Di Laptop/Desktop: Baris Tombol Navigasi -->
+          <div class="no-print">
+            <div class="md:hidden bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+              <button onclick="toggleDashMobileMenu()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 text-slate-800 font-extrabold text-xs">
+                <span class="flex items-center space-x-2">
+                  <i class="fa-solid fa-bars text-emerald-700"></i>
+                  <span id="activeDashMenuLabel">Menu: Ringkasan &amp; Statistik</span>
+                </span>
+                <i class="fa-solid fa-chevron-down text-xs" id="dashMobileChevron"></i>
+              </button>
+              <div id="dashMobileMenuContainer" class="hidden mt-2 pt-2 border-t border-slate-200 space-y-1"></div>
+            </div>
+
+            <div id="dashDesktopTabs" class="hidden md:flex flex-wrap items-center gap-2"></div>
+          </div>
+
+          <!-- ================= TAB 1: RINGKASAN & STATISTIK ================= -->
+          <div id="tab-overview" class="dash-content space-y-5">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Santri</span>
+                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="dashCardSantri">2</h3>
+              </div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Ustadz/h</span>
+                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="dashCardUstadz">2</h3>
+              </div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Setoran</span>
+                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="dashCardSetoran">3</h3>
+              </div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Rata-Rata Nilai</span>
+                <h3 class="text-xl font-black text-emerald-600 mt-0.5" id="dashCardAvgNilai">92.3</h3>
+              </div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Target Selesai</span>
+                <h3 class="text-xl font-black text-sky-600 mt-0.5" id="dashCardTargetSelesai">1</h3>
+              </div>
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Video Tersimpan</span>
+                <h3 class="text-xl font-black text-rose-600 mt-0.5" id="dashCardVideoCount">3</h3>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div class="lg:col-span-8 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+                <div class="flex justify-between items-center">
+                  <h3 class="font-extrabold text-xs sm:text-sm text-slate-800">Statistik Setoran per Bulan</h3>
+                  <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">Tahun 2026</span>
+                </div>
+                <div class="h-44 sm:h-52 flex items-end justify-between gap-1.5 pt-6 px-1 border-b border-slate-100" id="monthlyBarChart"></div>
+                <div class="grid grid-cols-12 text-center text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">
+                  <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>Mei</span><span>Jun</span><span>Jul</span><span>Ags</span><span>Sep</span><span>Okt</span><span>Nov</span><span>Des</span>
+                </div>
+              </div>
+
+              <div class="lg:col-span-4 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 class="font-extrabold text-xs sm:text-sm text-slate-800">Distribusi Predikat Nilai</h3>
+                  <p class="text-[11px] text-slate-500">Kualitas kelancaran &amp; tajwid</p>
+                </div>
+                <div class="flex items-center justify-center py-2">
+                  <div class="w-32 h-32 rounded-full border-8 border-emerald-500 flex flex-col items-center justify-center bg-emerald-50">
+                    <span class="text-xl font-black text-emerald-800" id="distPercent">100%</span>
+                    <span class="text-[10px] font-bold text-emerald-600 uppercase">Lancar</span>
+                  </div>
+                </div>
+                <div class="space-y-1.5 text-xs font-bold text-slate-600 pt-2 border-t border-slate-100">
+                  <div class="flex justify-between"><span>Lancar (90 - 100)</span><span id="countLancar" class="text-emerald-700">3</span></div>
+                  <div class="flex justify-between"><span>Cukup (75 - 89)</span><span id="countCukup" class="text-amber-600">0</span></div>
+                  <div class="flex justify-between"><span>Perlu Perbaikan (&lt;75)</span><span id="countPerbaikan" class="text-rose-600">0</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-xs sm:text-sm text-slate-800">Setoran Hafalan Terbaru</h3>
+                <button onclick="switchDashTab('tab-setoran')" class="text-xs font-extrabold text-emerald-700 hover:underline">Lihat Semua →</button>
+              </div>
+              <div id="recentSetoranContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 2: DATA SANTRI ================= -->
+          <div id="tab-santri" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Daftar Santri Tahfidz</h3>
+                  <p class="text-xs text-slate-500">NIS digunakan oleh Orang Tua untuk masuk ke dalam aplikasi.</p>
+                </div>
+                <button onclick="openSantriModal()" id="btnAddSantri" class="px-4 py-2.5 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-user-plus"></i><span>Tambah Santri</span>
+                </button>
+              </div>
+              <div id="santriTableContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 3: DATA USTADZ/USTADZAH ================= -->
+          <div id="tab-ustadz" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Daftar Ustadz/Ustadzah Pembimbing</h3>
+                  <p class="text-xs text-slate-500">Pengajar Tahfidz MAN 2 Kabupaten Gorontalo &amp; Yayasan Abulyatama.</p>
+                </div>
+                <button onclick="openUstadzModal()" id="btnAddUstadz" class="px-4 py-2.5 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-user-tie"></i><span>Tambah Ustadz/Ustadzah</span>
+                </button>
+              </div>
+              <div id="ustadzTableContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 4: SETORAN & VIDEO ================= -->
+          <div id="tab-setoran" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Riwayat Setoran &amp; Rekaman Video Santri</h3>
+                  <p class="text-xs text-slate-500">Klik tombol Putar Video untuk melihat rekaman santri saat menyetor hafalan.</p>
+                </div>
+                <button onclick="openSetoranModal()" id="btnSetoranTabAction" class="px-4 py-2.5 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-video"></i><span>Input &amp; Rekam Setoran</span>
+                </button>
+              </div>
+              <div id="fullSetoranTableContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 5: TARGET HAFALAN ================= -->
+          <div id="tab-target" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Target Capaian Hafalan Santri</h3>
+                  <p class="text-xs text-slate-500">Pemantauan target juz/surat beserta batas waktunya.</p>
+                </div>
+                <button onclick="openTargetModal()" id="btnAddTarget" class="px-4 py-2.5 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-bullseye"></i><span>Tambah Target</span>
+                </button>
+              </div>
+              <div id="targetTableContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 6: LAPORAN & RAPOR CETAK ================= -->
+          <div id="tab-laporan" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-4 border-b border-slate-100 no-print">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Laporan &amp; Cetak Rapor Tahfidz</h3>
+                  <p class="text-xs text-slate-500">Pilih nama santri untuk menampilkan dan mencetak rapor resmi.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <select id="selectLaporanSantri" class="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50" onchange="renderLaporanRapor()"></select>
+                  <button onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-print"></i><span>Cetak Rapor / PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <div id="printReportArea" class="p-4 sm:p-8 rounded-2xl border border-slate-200 space-y-6 bg-white">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b-2 border-slate-800 text-center">
+                  <img src="https://iili.io/nPt9Ol4.jpg" class="w-16 h-16 rounded-full object-cover border border-emerald-400">
+                  <div class="space-y-0.5">
+                    <p class="text-[10px] sm:text-xs font-extrabold uppercase text-slate-600">Kementerian Agama Republik Indonesia</p>
+                    <h2 class="text-sm sm:text-lg font-black uppercase text-slate-900">MADRASAH ALIYAH NEGERI 2 KABUPATEN GORONTALO</h2>
+                    <p class="text-[11px] font-bold text-sky-700">Bekerja Sama dengan Yayasan Abulyatama Indonesia Gorontalo</p>
+                  </div>
+                  <img src="https://iili.io/nPsE7oX.jpg" class="w-16 h-16 rounded-full object-cover border border-sky-400 hidden sm:block">
+                </div>
+
+                <div class="text-center space-y-0.5">
+                  <h4 class="text-xs sm:text-sm font-black uppercase underline text-slate-900">LAPORAN CAPAIAN HAFALAN AL-QUR’AN (SIMTAQ)</h4>
+                  <p class="text-[11px] text-slate-500">Tahun Pelajaran 2025/2026</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <p><span class="text-slate-500">Nama Santri:</span> <strong id="repNamaSantri" class="text-slate-900">-</strong></p>
+                  <p><span class="text-slate-500">Asrama / Halaqah:</span> <strong id="repAsramaSantri" class="text-slate-900">-</strong></p>
+                  <p><span class="text-slate-500">Nomor Induk (NIS):</span> <strong id="repNISSantri" class="text-slate-900">-</strong></p>
+                  <p><span class="text-slate-500">Capaian Hafalan:</span> <strong id="repJuzSantri" class="text-emerald-700">-</strong></p>
+                  <p><span class="text-slate-500">Kelas / JK:</span> <strong id="repKelasSantri" class="text-slate-900">-</strong></p>
+                  <p><span class="text-slate-500">Koordinator Tahfidz:</span> <strong id="repKoordinatorNama" class="text-slate-900">-</strong></p>
+                </div>
+
+                <div class="space-y-2">
+                  <h5 class="font-extrabold text-xs uppercase text-slate-700">Rincian Setoran Hafalan</h5>
+                  <div id="reportSetoranListContainer"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 text-xs text-center">
+                  <div class="space-y-12">
+                    <div>
+                      <p class="font-bold text-slate-700">Mengetahui,</p>
+                      <p id="repSignYayasanJabatan" class="text-[11px] text-slate-500">Ketua Yayasan Abulyatama Indonesia Gorontalo</p>
+                    </div>
+                    <p class="font-extrabold underline text-slate-900" id="repSignYayasanNama">-</p>
+                  </div>
+                  <div class="space-y-12">
+                    <div>
+                      <p class="font-bold text-slate-700">Kepala MAN 2 Kabupaten Gorontalo,</p>
+                      <p class="text-[11px] text-slate-500" id="repSignKepalaNip">-</p>
+                    </div>
+                    <p class="font-extrabold underline text-slate-900" id="repSignKepalaNama">-</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 7: KELOLA MUROTAL YOUTUBE & MP3 (KHUSUS ADMIN) ================= -->
+          <div id="tab-musik" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">Manajemen Playlist Murotal Al-Qur’an (Link YouTube &amp; MP3)</h3>
+                  <p class="text-xs text-slate-500">Sebagai Admin, Anda dapat menambahkan link YouTube Murotal Al-Qur’an maupun URL audio MP3 secara bebas.</p>
+                </div>
+                <button onclick="openMusicAdminModal()" class="px-4 py-2.5 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-brands fa-youtube"></i><span>Tambah Link YouTube / Murotal</span>
+                </button>
+              </div>
+              <div id="adminMusicTableContainer"></div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 8: PENGATURAN & KODE GAS ================= -->
+          <div id="tab-gas" class="dash-content hidden space-y-5">
+            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-800">File Google Apps Script (`Code.gs` &amp; `Index.html`)</h3>
+                  <p class="text-xs text-slate-500">Salin atau unduh kedua file di bawah ini untuk dipasang ke proyek Google Spreadsheet + Google Drive Anda.</p>
+                </div>
+                <button onclick="openPejabatModal()" class="px-4 py-2.5 rounded-xl bg-amber-600 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-pen-to-square"></i><span>Edit Nama Pimpinan</span>
+                </button>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button onclick="switchGasSubTab('gs')" id="btnSubTabGs" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-700 text-white">1. Kode File Code.gs</button>
+                <button onclick="switchGasSubTab('html')" id="btnSubTabHtml" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700">2. Kode File Index.html</button>
+              </div>
+
+              <div id="panelCodeGs" class="space-y-2">
+                <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+                  <span class="font-bold text-slate-600">Tempelkan kode ini pada file <code>Kode.gs</code> / <code>Code.gs</code>:</span>
+                  <div class="flex gap-2">
+                    <button onclick="copyTextById('rawCodeGsBox')" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin Code.gs</button>
+                    <button onclick="downloadFileFromBox('rawCodeGsBox', 'Code.gs')" class="px-3 py-1.5 rounded-lg bg-emerald-700 text-white font-bold text-[11px]"><i class="fa-solid fa-download mr-1"></i>Unduh Code.gs</button>
+                  </div>
+                </div>
+                <pre id="rawCodeGsBox" class="p-4 rounded-2xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto max-h-96 leading-relaxed"></pre>
+              </div>
+
+              <div id="panelIndexHtml" class="hidden space-y-2">
+                <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+                  <span class="font-bold text-slate-600">Tempelkan kode ini pada file <code>Index.html</code> di Google Apps Script:</span>
+                  <div class="flex gap-2">
+                    <button onclick="copyFullIndexHtml()" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-[11px]"><i class="fa-solid fa-copy mr-1"></i>Salin Index.html Lengkap</button>
+                    <button onclick="downloadFullIndexHtml()" class="px-3 py-1.5 rounded-lg bg-sky-700 text-white font-bold text-[11px]"><i class="fa-solid fa-download mr-1"></i>Unduh Index.html</button>
+                  </div>
+                </div>
+                <pre id="rawIndexHtmlBox" class="p-4 rounded-2xl bg-slate-950 text-sky-300 font-mono text-[11px] overflow-x-auto max-h-96 leading-relaxed"></pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ================= FOOTER RESMI ================= -->
+    <footer class="bg-white border-t border-slate-200/90 py-6 mt-10 text-center text-xs text-slate-500 space-y-1 px-4 no-print">
+      <p class="font-black text-sm simtaq-brand-title">SIMTAQ</p>
+      <p class="font-bold text-slate-700">Sistem Informasi Monitoring Tahfiz Al-Qur’an</p>
+      <p class="text-[11px] text-slate-500">MAN 2 Kabupaten Gorontalo × Yayasan Abulyatama Indonesia Gorontalo</p>
+      <p class="text-emerald-700 font-extrabold pt-1">Pengembang Aplikasi : Herman Susanto Buhungo, S.Pd.</p>
+    </footer>
+
+  </div><!-- Akhir #mainAppWrapper -->
+
+  <!-- ================= MODAL KELOLA MUROTAL YOUTUBE / MP3 (KHUSUS ADMIN) ================= -->
+  <div id="musicAdminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-sm sm:text-base text-slate-900" id="musicModalTitle">
+          <i class="fa-solid fa-book-quran text-emerald-600 mr-1.5"></i>Kelola Playlist Murotal Al-Qur’an (Admin)
+        </h3>
+        <button onclick="closeMusicAdminModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Form Tambah / Edit Link YouTube atau MP3 Murotal -->
+      <form onsubmit="handleSaveMusicTrack(event)" class="space-y-3 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+        <input type="hidden" id="editMusicId">
+        <div class="flex justify-between items-center">
+          <span class="font-extrabold text-emerald-800 uppercase text-[11px]" id="formMusicModeLabel">Tambah Link YouTube / Audio Murotal Baru</span>
+          <button type="button" onclick="resetMusicForm()" class="text-[11px] text-slate-500 hover:text-slate-800 font-bold">Reset Form</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Judul Murotal / Nama Surat</label>
+            <input type="text" id="formMusicTitle" placeholder="Contoh: Murotal QS. Ar-Rahman" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Nama Qari / Keterangan</label>
+            <input type="text" id="formMusicArtist" placeholder="Contoh: Syaikh Mishary Rashid" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">
+            <i class="fa-brands fa-youtube text-rose-600 mr-1"></i>Link YouTube Murotal atau URL Audio MP3
+          </label>
+          <input type="text" id="formMusicUrl" placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://.../055.mp3" oninput="previewDetectedMurotalSource(this.value)" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          <p id="detectedSourceHint" class="text-[10px] text-slate-500 mt-1 font-semibold">
+            Tempelkan link YouTube (<code>youtube.com/watch?v=...</code> atau <code>youtu.be/...</code>) maupun link MP3 langsung.
+          </p>
+        </div>
+
+        <div class="pt-1 border-t border-slate-200/80">
+          <label class="text-[10px] font-bold text-slate-500 block mb-1">Atau Unggah File MP3 Murotal dari HP/Laptop (Maks 4MB):</label>
+          <input type="file" accept="audio/*" onchange="handleLocalAudioUpload(event)" class="w-full text-[10px] text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-emerald-600 file:text-white file:font-bold">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-gradient text-white font-black shadow-xs">
+          <i class="fa-solid fa-floppy-disk mr-1"></i>Simpan Murotal ke Playlist
+        </button>
+      </form>
+
+      <!-- Daftar Murotal Saat Ini di Modal Admin -->
+      <div class="space-y-2">
+        <h4 class="font-extrabold text-xs text-slate-700">Daftar Murotal Aktif (Klik Putar, Edit, atau Hapus):</h4>
+        <div id="modalMusicListContainer" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL LOGIN 3 PERAN ================= -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-7 space-y-5 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center space-y-1.5">
+        <div class="flex justify-center space-x-2">
+          <img src="https://iili.io/nPt9Ol4.jpg" class="w-11 h-11 rounded-full object-cover border border-emerald-400">
+          <img src="https://iili.io/nPsE7oX.jpg" class="w-11 h-11 rounded-full object-cover border border-sky-400">
+        </div>
+        <h3 class="text-xl font-black simtaq-brand-title">SIMTAQ</h3>
+        <p class="text-xs text-slate-500">Pilih hak akses pengguna untuk masuk</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl text-xs font-extrabold">
+        <button type="button" onclick="switchLoginRole('ortu')" id="roleBtnOrtu" class="py-2.5 rounded-xl bg-white text-emerald-800 shadow-xs transition">Orang Tua</button>
+        <button type="button" onclick="switchLoginRole('ustadz')" id="roleBtnUstadz" class="py-2.5 rounded-xl text-slate-600 transition">Ustadz/h</button>
+        <button type="button" onclick="switchLoginRole('admin')" id="roleBtnAdmin" class="py-2.5 rounded-xl text-slate-600 transition">Admin</button>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
+        <div class="space-y-1.5">
+          <label class="font-extrabold text-slate-700 block" id="loginLabelText">NIS Santri (Nomor Induk Siswa)</label>
+          <input type="text" id="loginInputVal" value="4334345" class="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-900 focus:outline-none focus:border-emerald-600" required>
+          <p class="text-[11px] text-slate-500" id="loginHintText">Gunakan NIS contoh: <strong>4334345</strong> atau <strong>4334346</strong></p>
+        </div>
+        <button type="submit" class="w-full py-3.5 rounded-2xl bg-brand-gradient text-white font-black shadow-md">
+          Masuk Sebagai <span id="roleSubmitName">Orang Tua</span>
+        </button>
+      </form>
+
+      <div class="text-center pt-2 border-t border-slate-100">
+        <p class="text-[10px] font-bold text-slate-400">Pengembang Aplikasi : Herman Susanto Buhungo, S.Pd.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL INPUT SETORAN & REKAM VIDEO ================= -->
+  <div id="setoranModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-sm sm:text-base text-slate-900"><i class="fa-solid fa-video text-emerald-600 mr-1.5"></i>Input Setoran &amp; Rekam Video</h3>
+        <button onclick="closeSetoranModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveSetoran(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Pilih Santri</label>
+          <select id="setoranSantriId" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold" required></select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Nama Surat</label>
+            <input type="text" id="setoranSurat" placeholder="Contoh: An-Naba" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Ayat</label>
+            <input type="text" id="setoranAyat" placeholder="Contoh: 1-20" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Juz</label>
+            <input type="number" id="setoranJuz" min="1" max="30" value="30" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Nilai Hafalan (0-100)</label>
+            <input type="number" id="setoranNilai" min="0" max="100" value="95" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Ustadz/Ustadzah Pembimbing</label>
+          <select id="setoranUstadz" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold"></select>
+        </div>
+
+        <!-- Studio Kamera Rekam Video -->
+        <div class="p-3.5 rounded-2xl bg-slate-900 text-white space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-xs"><i class="fa-solid fa-camera text-rose-400 mr-1.5"></i>Studio Kamera Setoran</span>
+            <span id="recordingStatus" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Siap</span>
+          </div>
+          <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-700">
+            <video id="cameraPreview" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 text-slate-400 text-center p-3">
+              <i class="fa-solid fa-video text-xl mb-1 text-emerald-400"></i>
+              <p class="text-[11px]">Klik "Kamera" atau unggah file video dari HP.</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" onclick="startCamera()" class="py-2 px-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px]"><i class="fa-solid fa-camera mr-1"></i>Kamera</button>
+            <button type="button" onclick="startRecording()" id="btnStartRec" class="py-2 px-2 rounded-xl bg-rose-600 text-white font-bold text-[11px]" disabled><i class="fa-solid fa-circle mr-1"></i>Rekam</button>
+            <button type="button" onclick="stopRecording()" id="btnStopRec" class="py-2 px-2 rounded-xl bg-slate-700 text-white font-bold text-[11px]" disabled><i class="fa-solid fa-stop mr-1"></i>Selesai</button>
+          </div>
+          <div class="pt-1 border-t border-slate-800">
+            <label class="text-[10px] text-slate-300 block mb-1">Atau pilih video dari galeri HP:</label>
+            <input type="file" accept="video/*" onchange="handleVideoFileUpload(event)" class="w-full text-[10px] text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-sky-600 file:text-white file:font-bold">
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Catatan Pembimbing</label>
+          <textarea id="setoranCatatan" rows="2" placeholder="Evaluasi tajwid, makhraj, dan kelancaran..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-semibold"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-2xl bg-brand-gradient text-white font-black shadow-md">
+          Simpan Setoran &amp; Video ke Database
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL PEMUTAR VIDEO SETORAN ================= -->
+  <div id="videoPlayerModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
+      <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      <h3 class="font-extrabold text-sm sm:text-base text-slate-900"><i class="fa-solid fa-circle-play text-emerald-600 mr-1.5"></i>Rekaman Video Setoran Santri</h3>
+      <div class="w-full aspect-video bg-black rounded-2xl overflow-hidden flex items-center justify-center">
+        <video id="modalVideoElement" controls class="w-full h-full object-contain"></video>
+      </div>
+      <div class="flex justify-between items-center text-[11px] text-slate-500">
+        <span id="videoModalCaption">Tersimpan di Google Drive SIMTAQ</span>
+        <a id="videoDriveExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-sky-700 font-bold hover:underline"><i class="fa-brands fa-google-drive mr-1"></i>Buka di Drive</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL TAMBAH / EDIT SANTRI ================= -->
+  <div id="santriModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-base text-slate-900" id="santriModalTitle">Tambah / Edit Santri</h3>
+        <button onclick="closeSantriModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveSantri(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editSantriId">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nama Lengkap Santri</label>
+          <input type="text" id="formSantriNama" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">NIS (Akun Login Orang Tua)</label>
+            <input type="text" id="formSantriNis" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Jenis Kelamin</label>
+            <select id="formSantriJk" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold">
+              <option value="L">Laki-laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Kelas</label>
+            <input type="text" id="formSantriKelas" value="X IPA 1" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Capaian Juz Saat Ini</label>
+            <input type="number" id="formSantriJuz" min="1" max="30" value="1" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Asrama / Halaqah</label>
+          <input type="text" id="formSantriAsrama" value="Halaqah Al-Fajr" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Status</label>
+          <select id="formSantriStatus" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold">
+            <option value="Aktif">Aktif</option>
+            <option value="Lulus">Lulus / Khatam</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-2xl bg-brand-gradient text-white font-black shadow-md">Simpan Data Santri</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL TAMBAH / EDIT USTADZ/USTADZAH ================= -->
+  <div id="ustadzModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-base text-slate-900" id="ustadzModalTitle">Tambah / Edit Ustadz/Ustadzah</h3>
+        <button onclick="closeUstadzModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveUstadz(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editUstadzId">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nama Lengkap Ustadz / Ustadzah</label>
+          <input type="text" id="formUstadzNama" placeholder="Contoh: Ustadzah Siti Rahmawati, S.Pd.I" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">NIP / NIY</label>
+            <input type="text" id="formUstadzNip" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Lembaga Asal</label>
+            <select id="formUstadzLembaga" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold">
+              <option value="MAN 2 Kab. Gorontalo">MAN 2 Kab. Gorontalo</option>
+              <option value="Yayasan Abulyatama Indonesia">Yayasan Abulyatama Indonesia</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Halaqah Binaan</label>
+            <input type="text" id="formUstadzHalaqah" value="Halaqah 1" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Nomor WhatsApp</label>
+            <input type="text" id="formUstadzKontak" value="081234567890" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Status Keaktifan</label>
+          <select id="formUstadzStatus" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold">
+            <option value="Aktif">Aktif</option>
+            <option value="Non-Aktif">Non-Aktif</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-2xl bg-brand-gradient text-white font-black shadow-md">Simpan Ustadz/Ustadzah</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL TAMBAH TARGET HAFALAN ================= -->
+  <div id="targetModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-base text-slate-900">Tambah Target Hafalan</h3>
+        <button onclick="closeTargetModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveTarget(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Pilih Santri</label>
+          <select id="formTargetSantri" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required></select>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Rincian Target</label>
+          <input type="text" id="formTargetNama" placeholder="Contoh: Selesai Juz 30 Mutqin" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Batas Tanggal</label>
+            <input type="date" id="formTargetTanggal" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold" required>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Status</label>
+            <select id="formTargetStatus" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold">
+              <option value="Proses">Proses</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-2xl bg-brand-gradient text-white font-black shadow-md">Simpan Target</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT NAMA PIMPINAN (ADMIN) ================= -->
+  <div id="pejabatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="font-extrabold text-base text-slate-900">Edit Nama Kepala Madrasah, Yayasan &amp; Koordinator</h3>
+        <button onclick="closePejabatModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSavePejabat(event)" class="space-y-3 text-xs">
+        <div class="p-3.5 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+          <h4 class="font-extrabold text-emerald-800">1. Kepala MAN 2 Kabupaten Gorontalo</h4>
+          <input type="text" id="formKepalaNama" placeholder="Nama &amp; Gelar Kepala Madrasah" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          <input type="text" id="formKepalaNip" placeholder="NIP Kepala Madrasah" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+        </div>
+        <div class="p-3.5 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+          <h4 class="font-extrabold text-sky-800">2. Pimpinan Yayasan Abulyatama Indonesia Gorontalo</h4>
+          <input type="text" id="formYayasanNama" placeholder="Nama Pimpinan Yayasan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          <input type="text" id="formYayasanJabatan" placeholder="Jabatan Pimpinan Yayasan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+        </div>
+        <div class="p-3.5 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+          <h4 class="font-extrabold text-indigo-800">3. Koordinator Ustadz/Ustadzah Tahfidz</h4>
+          <input type="text" id="formKoordinatorNama" placeholder="Nama Koordinator Tahfidz" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+          <input type="text" id="formKoordinatorJabatan" placeholder="Jabatan Koordinator" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold" required>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-2xl bg-brand-gradient text-white font-black shadow-md">Simpan Pengaturan Pimpinan</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- =====================================================================
+       BLOK 3: JAVASCRIPT LOGIC (ANTI-BLOKIR MUROTAL YOUTUBE + MP3, CRUD & GAS)
+       ===================================================================== -->
+  <script>
+    const STORAGE_KEY = 'SIMTAQ_MAN2_ABULYATAMA_DB_V5';
+    const isGasEnvironment = () => typeof google !== 'undefined' && google.script && google.script.run;
+
+    // State Utama Aplikasi (Daftar Putar Murotal Mendukung Link YouTube & MP3)
+    let appState = {
+      currentUser: null,
+      activeDashTab: 'tab-overview',
+      playlist: [
+        {
+          id: 'MRT-01',
+          title: 'Murotal QS. Ar-Rahman (Ayat 1-78)',
+          artist: 'Syaikh Mishary Rashid Al-Afasy',
+          url: 'https://server8.mp3quran.net/afs/055.mp3'
+        },
+        {
+          id: 'MRT-02',
+          title: 'Murotal QS. Al-Mulk (Penjaga dari Siksa Kubur)',
+          artist: 'Syaikh Mishary Rashid Al-Afasy',
+          url: 'https://server8.mp3quran.net/afs/067.mp3'
+        },
+        {
+          id: 'MRT-03',
+          title: 'Murotal Merdu Juz 30 (YouTube Murotal)',
+          artist: 'Murotal Al-Qur’an Pilihan (YouTube)',
+          url: 'https://www.youtube.com/watch?v=1dn6tQ2V3pA'
+        }
+      ],
+      santri: [
+        { id: 'SNT-01', nis: '4334345', nama: 'Lutfianiga Lutfiiah', jk: 'P', kelas: 'X IPA 1', asrama: 'Asrama Putri Al-Qur’an', juz: 2, status: 'Aktif' },
+        { id: 'SNT-02', nis: '4334346', nama: 'Muhammad Farhan Ramadhan', jk: 'L', kelas: 'XI Agama', asrama: 'Asrama Putra Abulyatama', juz: 4, status: 'Aktif' }
+      ],
+      ustadz: [
+        { id: 'UST-01', nip: '198201012005011001', nama: 'Ustadz Ahmad Fauzan, S.Pd.I', lembaga: 'MAN 2 Kab. Gorontalo', halaqah: 'Halaqah Putra 1', kontak: '081234567890', status: 'Aktif' },
+        { id: 'UST-02', nip: '198805122015032004', nama: 'Ustadzah Siti Rahmawati, M.Pd.', lembaga: 'Yayasan Abulyatama Indonesia', halaqah: 'Halaqah Putri 1', kontak: '081345678901', status: 'Aktif' }
+      ],
+      setoran: [
+        { id: 'STR-01', tanggal: '24/04/2026', santriId: 'SNT-01', nis: '4334345', santriNama: 'Lutfianiga Lutfiiah', surat: 'Al-Fatihah', ayat: '1-7', juz: 1, nilai: 95, ustadz: 'Ustadzah Siti Rahmawati, M.Pd.', catatan: 'Makhraj dan mad sangat baik.', hasVideo: true, videoBlobUrl: '' },
+        { id: 'STR-02', tanggal: '02/05/2026', santriId: 'SNT-01', nis: '4334345', santriNama: 'Lutfianiga Lutfiiah', surat: 'Al-Baqarah', ayat: '1-25', juz: 1, nilai: 90, ustadz: 'Ustadzah Siti Rahmawati, M.Pd.', catatan: 'Lancar dan mutqin.', hasVideo: true, videoBlobUrl: '' },
+        { id: 'STR-03', tanggal: '04/05/2026', santriId: 'SNT-02', nis: '4334346', santriNama: 'Muhammad Farhan Ramadhan', surat: 'Ali Imran', ayat: '1-30', juz: 3, nilai: 92, ustadz: 'Ustadz Ahmad Fauzan, S.Pd.I', catatan: 'Tartil sangat terjaga.', hasVideo: true, videoBlobUrl: '' }
+      ],
+      target: [
+        { id: 'TRG-01', santriId: 'SNT-01', nis: '4334345', santriNama: 'Lutfianiga Lutfiiah', kelas: 'X IPA 1', target: 'Selesai Juz 1 Mutqin', tanggalTarget: '15/05/2026', status: 'Selesai' },
+        { id: 'TRG-02', santriId: 'SNT-02', nis: '4334346', santriNama: 'Muhammad Farhan Ramadhan', kelas: 'XI Agama', target: 'Selesai Juz 4 Mutqin', tanggalTarget: '30/05/2026', status: 'Proses' }
+      ],
+      pejabat: {
+        kepalaMadrasahNama: 'H. Yon Gani, S.Pd., M.Pd.',
+        kepalaMadrasahNip: 'NIP. 19720415 199803 1 002',
+        pimpinanYayasanNama: 'Pimpinan Yayasan Abulyatama Gorontalo',
+        pimpinanYayasanJabatan: 'Ketua Yayasan Abulyatama Indonesia Cabang Gorontalo',
+        koordinatorUstadzNama: 'Ustadz Ahmad Fauzan, S.Pd.I',
+        koordinatorUstadzJabatan: 'Koordinator Program Tahfidz Al-Qur’an'
+      }
+    };
+
+    // =========================================================================
+    // HYBRID ENGINE MUROTAL (MENDUKUNG LINK YOUTUBE & AUDIO MP3 ANTI-BLOKIR)
+    // =========================================================================
+    let audioState = {
+      currentIndex: 0,
+      isPlaying: false,
+      isMuted: false,
+      currentVolume: 0.75, // Skala 0.0 - 1.0 (75%)
+      previousVolume: 0.75, // Menyimpan volume sebelum di-mute
+      activeMode: 'audio', // 'audio' atau 'youtube'
+      ytReady: false,
+      showYtVideo: false
+    };
+
+    const bgMusicEl = document.getElementById('bg-music');
+    let ytPlayerInstance = null;
+
+    // Fungsi Ekstraksi ID Video YouTube dari Berbagai Format Link YouTube
+    function extractYouTubeId(url) {
+      if (!url || typeof url !== 'string') return null;
+      const clean = url.trim();
+      const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+      const match = clean.match(regExp);
+      return match && match[1] ? match[1] : null;
+    }
+
+    // Callback Resmi saat YouTube IFrame API Siap
+    window.onYouTubeIframeAPIReady = function() {
+      ytPlayerInstance = new YT.Player('yt-murotal-player', {
+        height: '158',
+        width: '280',
+        videoId: '1dn6tQ2V3pA',
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1
+        },
+        events: {
+          onReady: () => {
+            audioState.ytReady = true;
+            ytPlayerInstance.setVolume(Math.round(audioState.currentVolume * 100));
+          },
+          onStateChange: (event) => {
+            if (audioState.activeMode !== 'youtube') return;
+            if (event.data === YT.PlayerState.PLAYING) {
+              audioState.isPlaying = true;
+              updateAudioControllerUI();
+            } else if (event.data === YT.PlayerState.PAUSED) {
+              audioState.isPlaying = false;
+              updateAudioControllerUI();
+            } else if (event.data === YT.PlayerState.ENDED) {
+              // Otomatis putar Murotal berikutnya saat video YouTube selesai
+              nextTrack();
+            }
+          },
+          onError: () => {
+            if (audioState.activeMode === 'youtube') {
+              showToast('Video YouTube ini membatasi pemutaran embed, beralih ke Murotal berikutnya...', 'info');
+              setTimeout(() => nextTrack(), 1200);
+            }
+          }
+        }
+      });
+    };
+
+    // Inisialisasi Engine Murotal
+    function initAudioEngine() {
+      if (!bgMusicEl) return;
+      bgMusicEl.volume = audioState.currentVolume;
+
+      bgMusicEl.addEventListener('ended', () => {
+        if (audioState.activeMode === 'audio') nextTrack();
+      });
+
+      bgMusicEl.addEventListener('play', () => {
+        if (audioState.activeMode === 'audio') {
+          audioState.isPlaying = true;
+          updateAudioControllerUI();
+        }
+      });
+
+      bgMusicEl.addEventListener('pause', () => {
+        if (audioState.activeMode === 'audio') {
+          audioState.isPlaying = false;
+          updateAudioControllerUI();
+        }
+      });
+
+      loadTrackByIndex(0, false);
+      renderPlaylistUI();
+    }
+
+    // 1. Mekanisme Anti-Blokir: Dipanggil saat tombol "Mulai / Masuk Aplikasi" di Welcome Screen diklik
+    function enterApplicationWithAudio() {
+      const welcomeEl = document.getElementById('welcomeScreen');
+      const mainAppEl = document.getElementById('mainAppWrapper');
+
+      if (appState.playlist.length > 0) {
+        loadTrackByIndex(audioState.currentIndex, true);
+      }
+
+      if (welcomeEl) {
+        welcomeEl.classList.add('fade-out');
+        setTimeout(() => {
+          welcomeEl.classList.add('hidden');
+        }, 650);
+      }
+      if (mainAppEl) {
+        mainAppEl.classList.remove('hidden');
+        mainAppEl.classList.add('fade-in');
+      }
+    }
+
+    // 2. Memuat Murotal (Deteksi Otomatis Link YouTube vs File MP3)
+    function loadTrackByIndex(index, autoPlay = true) {
+      if (!appState.playlist.length) return;
+      if (index < 0) index = appState.playlist.length - 1;
+      if (index >= appState.playlist.length) index = 0;
+
+      audioState.currentIndex = index;
+      const track = appState.playlist[index];
+      const ytId = extractYouTubeId(track.url);
+
+      setElText('currentTrackTitle', track.title);
+      setElText('currentTrackArtist', track.artist || 'Murotal Al-Qur’an SIMTAQ');
+
+      const badgeEl = document.getElementById('currentTrackSourceBadge');
+      const btnYtPreview = document.getElementById('btnToggleYtPreview');
+
+      if (ytId) {
+        // Mode YouTube Murotal
+        audioState.activeMode = 'youtube';
+        if (bgMusicEl && !bgMusicEl.paused) bgMusicEl.pause();
+
+        if (badgeEl) {
+          badgeEl.innerHTML = '<i class="fa-brands fa-youtube mr-1"></i>YouTube';
+          badgeEl.className = 'px-1.5 py-0.2 rounded bg-rose-500/30 border border-rose-400/40 text-[9px] font-black text-rose-200 uppercase shrink-0';
+        }
+        if (btnYtPreview) btnYtPreview.classList.remove('hidden');
+
+        if (audioState.ytReady && ytPlayerInstance && typeof ytPlayerInstance.loadVideoById === 'function') {
+          if (autoPlay) {
+            ytPlayerInstance.loadVideoById(ytId);
+            ytPlayerInstance.setVolume(audioState.isMuted ? 0 : Math.round(audioState.currentVolume * 100));
+            audioState.isPlaying = true;
+          } else {
+            ytPlayerInstance.cueVideoById(ytId);
+            audioState.isPlaying = false;
+          }
+        } else if (autoPlay) {
+          // Jika API YouTube masih sedang dimuat, tunggu sebentar lalu putar
+          setTimeout(() => {
+            if (audioState.ytReady && ytPlayerInstance) {
+              ytPlayerInstance.loadVideoById(ytId);
+              ytPlayerInstance.setVolume(audioState.isMuted ? 0 : Math.round(audioState.currentVolume * 100));
+            }
+          }, 900);
+        }
+      } else {
+        // Mode Audio MP3 Langsung
+        audioState.activeMode = 'audio';
+        if (audioState.ytReady && ytPlayerInstance && typeof ytPlayerInstance.stopVideo === 'function') {
+          ytPlayerInstance.stopVideo();
+        }
+        if (badgeEl) {
+          badgeEl.innerHTML = '<i class="fa-solid fa-book-quran mr-1"></i>MP3';
+          badgeEl.className = 'px-1.5 py-0.2 rounded bg-emerald-500/30 border border-emerald-400/40 text-[9px] font-black text-emerald-200 uppercase shrink-0';
+        }
+        if (btnYtPreview) btnYtPreview.classList.add('hidden');
+        document.getElementById('ytWrapperBox')?.classList.replace('yt-visible-frame', 'yt-hidden-frame');
+
+        if (bgMusicEl) {
+          bgMusicEl.src = track.url;
+          bgMusicEl.load();
+          bgMusicEl.volume = audioState.isMuted ? 0 : audioState.currentVolume;
+          if (autoPlay) {
+            bgMusicEl.play().then(() => {
+              audioState.isPlaying = true;
+              updateAudioControllerUI();
+            }).catch(() => {
+              audioState.isPlaying = false;
+              updateAudioControllerUI();
+            });
+          } else {
+            audioState.isPlaying = false;
+          }
+        }
+      }
+
+      updateAudioControllerUI();
+      renderPlaylistUI();
+    }
+
+    function toggleYouTubeMiniVideo() {
+      const box = document.getElementById('ytWrapperBox');
+      if (!box) return;
+      audioState.showYtVideo = !audioState.showYtVideo;
+      if (audioState.showYtVideo) {
+        box.classList.remove('yt-hidden-frame');
+        box.classList.add('yt-visible-frame');
+        setElText('textToggleYtPreview', 'Sembunyikan Video YouTube');
+      } else {
+        box.classList.remove('yt-visible-frame');
+        box.classList.add('yt-hidden-frame');
+        setElText('textToggleYtPreview', 'Tampilkan Video YouTube');
+      }
+    }
+
+    function selectTrackFromList(index) {
+      loadTrackByIndex(index, true);
+    }
+
+    function togglePlayPause() {
+      if (!appState.playlist.length) return;
+
+      if (audioState.activeMode === 'youtube') {
+        if (!audioState.ytReady || !ytPlayerInstance) {
+          showToast('Menyiapkan pemutar YouTube Murotal...', 'info');
+          return;
+        }
+        const st = ytPlayerInstance.getPlayerState();
+        if (st === YT.PlayerState.PLAYING) {
+          ytPlayerInstance.pauseVideo();
+        } else {
+          ytPlayerInstance.playVideo();
+        }
+      } else {
+        if (!bgMusicEl) return;
+        if (bgMusicEl.paused) {
+          bgMusicEl.play().catch(() => {
+            showToast('Gagal memuat stream audio, periksa koneksi atau link Murotal.', 'error');
+          });
+        } else {
+          bgMusicEl.pause();
+        }
+      }
+    }
+
+    function nextTrack() {
+      if (!appState.playlist.length) return;
+      loadTrackByIndex(audioState.currentIndex + 1, true);
+    }
+
+    function prevTrack() {
+      if (!appState.playlist.length) return;
+      loadTrackByIndex(audioState.currentIndex - 1, true);
+    }
+
+    // 3. Kontrol Slider Volume (0 - 100) & Mute dengan Memori Volume Sebelumnya
+    function handleVolumeChange(val) {
+      const numericVal = Math.max(0, Math.min(100, Number(val)));
+      const normalized = numericVal / 100;
+      audioState.currentVolume = normalized;
+
+      if (numericVal > 0) {
+        audioState.previousVolume = normalized;
+        audioState.isMuted = false;
+      } else {
+        audioState.isMuted = true;
+      }
+
+      if (bgMusicEl) {
+        bgMusicEl.muted = audioState.isMuted;
+        bgMusicEl.volume = normalized;
+      }
+      if (audioState.ytReady && ytPlayerInstance) {
+        if (audioState.isMuted) ytPlayerInstance.mute();
+        else {
+          ytPlayerInstance.unMute();
+          ytPlayerInstance.setVolume(numericVal);
+        }
+      }
+
+      syncVolumeControlsUI(numericVal);
+    }
+
+    function toggleMuteAudio() {
+      if (!audioState.isMuted) {
+        audioState.previousVolume = audioState.currentVolume > 0 ? audioState.currentVolume : 0.75;
+        audioState.currentVolume = 0;
+        audioState.isMuted = true;
+
+        if (bgMusicEl) {
+          bgMusicEl.muted = true;
+          bgMusicEl.volume = 0;
+        }
+        if (audioState.ytReady && ytPlayerInstance) {
+          ytPlayerInstance.mute();
+          ytPlayerInstance.setVolume(0);
+        }
+        syncVolumeControlsUI(0);
+      } else {
+        const restored = audioState.previousVolume > 0 ? audioState.previousVolume : 0.75;
+        const percentVal = Math.round(restored * 100);
+        audioState.currentVolume = restored;
+        audioState.isMuted = false;
+
+        if (bgMusicEl) {
+          bgMusicEl.muted = false;
+          bgMusicEl.volume = restored;
+        }
+        if (audioState.ytReady && ytPlayerInstance) {
+          ytPlayerInstance.unMute();
+          ytPlayerInstance.setVolume(percentVal);
+        }
+        syncVolumeControlsUI(percentVal);
+      }
+    }
+
+    function syncVolumeControlsUI(percentVal) {
+      const sDesktop = document.getElementById('volumeSlider');
+      const sMobile = document.getElementById('volumeSliderMobile');
+      if (sDesktop) sDesktop.value = percentVal;
+      if (sMobile) sMobile.value = percentVal;
+
+      setElText('volumeValueText', percentVal + '%');
+      setElText('volumeValueTextMobile', percentVal + '%');
+
+      const iconMute = document.getElementById('iconMuteStatus');
+      const textMute = document.getElementById('textMuteStatus');
+      if (iconMute) {
+        if (audioState.isMuted || percentVal === 0) {
+          iconMute.className = 'fa-solid fa-volume-xmark text-rose-400';
+          if (textMute) textMute.textContent = 'Mute';
+        } else if (percentVal < 50) {
+          iconMute.className = 'fa-solid fa-volume-low text-emerald-300';
+          if (textMute) textMute.textContent = 'Suara';
+        } else {
+          iconMute.className = 'fa-solid fa-volume-high text-emerald-300';
+          if (textMute) textMute.textContent = 'Suara';
+        }
+      }
+    }
+
+    function updateAudioControllerUI() {
+      const iconPP = document.getElementById('iconPlayPause');
+      const eq = document.getElementById('eqIndicator');
+      if (iconPP) {
+        iconPP.className = audioState.isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+      }
+      if (eq) {
+        eq.classList.toggle('eq-paused', !audioState.isPlaying);
+      }
+      renderPlaylistUI();
+    }
+
+    function togglePlaylistDrawer() {
+      const drawer = document.getElementById('playlistDrawer');
+      if (drawer) drawer.classList.toggle('hidden');
+    }
+
+    function renderPlaylistUI() {
+      setElText('playlistBadgeCount', appState.playlist.length);
+      const box = document.getElementById('playlistItemsContainer');
+      if (box) {
+        if (!appState.playlist.length) {
+          box.innerHTML = `<p class="text-[11px] text-slate-300 col-span-3 py-2 text-center">Belum ada Murotal di dalam daftar putar.</p>`;
+        } else {
+          box.innerHTML = appState.playlist.map((t, idx) => {
+            const active = idx === audioState.currentIndex;
+            const isYt = Boolean(extractYouTubeId(t.url));
+            return `
+              <div onclick="selectTrackFromList(${idx})" class="cursor-pointer p-2.5 rounded-xl border transition flex items-center justify-between gap-2 ${active ? 'bg-emerald-500/25 border-emerald-400 text-white' : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'}">
+                <div class="flex items-center space-x-2 min-w-0">
+                  <span class="w-6 h-6 rounded-lg ${active ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300'} flex items-center justify-center text-[10px] font-black shrink-0">
+                    ${active && audioState.isPlaying ? '<i class="fa-solid fa-volume-high"></i>' : (idx + 1)}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-extrabold truncate">${t.title}</p>
+                    <p class="text-[9px] text-slate-300 truncate flex items-center gap-1">
+                      ${isYt ? '<i class="fa-brands fa-youtube text-rose-400"></i>' : '<i class="fa-solid fa-book-quran text-emerald-300"></i>'}
+                      <span>${t.artist || 'Murotal SIMTAQ'}</span>
+                    </p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold ${active ? 'text-emerald-300' : 'text-slate-400'} shrink-0">
+                  ${active ? 'Aktif' : 'Putar'}
+                </span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      renderAdminMusicTable();
+      renderModalMusicList();
+    }
+
+    // =========================================================================
+    // HAK AKSES ADMIN: TAMBAH, EDIT & HAPUS LINK YOUTUBE / MP3 MUROTAL
+    // =========================================================================
+    function previewDetectedMurotalSource(urlVal) {
+      const hint = document.getElementById('detectedSourceHint');
+      if (!hint) return;
+      const ytId = extractYouTubeId(urlVal);
+      if (ytId) {
+        hint.innerHTML = `<span class="text-emerald-700 font-extrabold"><i class="fa-brands fa-youtube text-rose-600 mr-1"></i>Link YouTube Valid Terdeteksi (ID Video: <code>${ytId}</code>) — Siap diputar!</span>`;
+      } else if (urlVal && urlVal.trim().length > 5) {
+        hint.innerHTML = `<span class="text-sky-700 font-bold"><i class="fa-solid fa-file-audio mr-1"></i>Terdeteksi sebagai URL Audio MP3 / Stream Langsung.</span>`;
+      } else {
+        hint.innerHTML = `Tempelkan link YouTube (<code>youtube.com/watch?v=...</code> atau <code>youtu.be/...</code>) maupun link MP3 langsung.`;
+      }
+    }
+
+    function openMusicAdminModal(editId = null) {
+      if (appState.currentUser?.role !== 'admin') {
+        showToast('Hanya Administrator yang dapat mengelola daftar Murotal!', 'error');
+        return;
+      }
+      if (editId) {
+        populateMusicFormForEdit(editId);
+      } else {
+        resetMusicForm();
+      }
+      renderModalMusicList();
+      document.getElementById('musicAdminModal').classList.remove('hidden');
+    }
+
+    function closeMusicAdminModal() {
+      document.getElementById('musicAdminModal').classList.add('hidden');
+    }
+
+    function resetMusicForm() {
+      document.getElementById('editMusicId').value = '';
+      document.getElementById('formMusicTitle').value = '';
+      document.getElementById('formMusicArtist').value = '';
+      document.getElementById('formMusicUrl').value = '';
+      setElText('formMusicModeLabel', 'Tambah Link YouTube / Audio Murotal Baru');
+      previewDetectedMurotalSource('');
+    }
+
+    function populateMusicFormForEdit(id) {
+      const item = appState.playlist.find(m => m.id === id);
+      if (!item) return;
+      document.getElementById('editMusicId').value = item.id;
+      document.getElementById('formMusicTitle').value = item.title;
+      document.getElementById('formMusicArtist').value = item.artist || '';
+      document.getElementById('formMusicUrl').value = item.url;
+      setElText('formMusicModeLabel', 'Edit Murotal: ' + item.title);
+      previewDetectedMurotalSource(item.url);
+    }
+
+    function handleLocalAudioUpload(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 4.5 * 1024 * 1024) {
+        showToast('Ukuran file MP3 maksimal 4MB agar ringan disimpan.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        document.getElementById('formMusicUrl').value = reader.result;
+        if (!document.getElementById('formMusicTitle').value) {
+          document.getElementById('formMusicTitle').value = file.name.replace(/\.[^/.]+$/, '');
+        }
+        previewDetectedMurotalSource(reader.result);
+        showToast('File MP3 Murotal berhasil dimuat ke form!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleSaveMusicTrack(e) {
+      e.preventDefault();
+      if (appState.currentUser?.role !== 'admin') return;
+
+      const editId = document.getElementById('editMusicId').value;
+      const trackObj = {
+        id: editId || ('MRT-' + Date.now()),
+        title: document.getElementById('formMusicTitle').value.trim(),
+        artist: document.getElementById('formMusicArtist').value.trim(),
+        url: document.getElementById('formMusicUrl').value.trim()
+      };
+
+      const existingIdx = appState.playlist.findIndex(x => x.id === trackObj.id);
+      if (existingIdx >= 0) {
+        appState.playlist[existingIdx] = trackObj;
+        if (audioState.currentIndex === existingIdx) {
+          loadTrackByIndex(existingIdx, audioState.isPlaying);
+        }
+        showToast('Data Murotal berhasil diperbarui!');
+      } else {
+        appState.playlist.push(trackObj);
+        showToast('Murotal baru berhasil ditambahkan ke playlist!');
+      }
+
+      persistLocalState();
+      if (isGasEnvironment()) {
+        google.script.run.upsertMusicGAS(trackObj);
+      }
+      resetMusicForm();
+      renderPlaylistUI();
+    }
+
+    function deleteMusicTrack(id) {
+      if (appState.currentUser?.role !== 'admin') return;
+      if (appState.playlist.length <= 1) {
+        showToast('Minimal harus ada 1 Murotal di dalam playlist!', 'error');
+        return;
+      }
+      const deletedIdx = appState.playlist.findIndex(x => x.id === id);
+      appState.playlist = appState.playlist.filter(x => x.id !== id);
+
+      if (deletedIdx === audioState.currentIndex) {
+        loadTrackByIndex(0, audioState.isPlaying);
+      } else if (deletedIdx < audioState.currentIndex) {
+        audioState.currentIndex = Math.max(0, audioState.currentIndex - 1);
+      }
+
+      persistLocalState();
+      if (isGasEnvironment()) {
+        google.script.run.deleteRecordByIdGAS('Musik_Latar', id);
+      }
+      renderPlaylistUI();
+      showToast('Murotal berhasil dihapus dari playlist.');
+    }
+
+    function renderModalMusicList() {
+      const box = document.getElementById('modalMusicListContainer');
+      if (!box) return;
+      box.innerHTML = appState.playlist.map((m, i) => {
+        const isYt = Boolean(extractYouTubeId(m.url));
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded text-[9px] font-black ${isYt ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'}">${isYt ? 'YouTube' : 'MP3'}</span>
+                <p class="font-extrabold text-slate-900 truncate">${i + 1}. ${m.title}</p>
+              </div>
+              <p class="text-[10px] text-slate-500 truncate mt-0.5">${m.artist}</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="selectTrackFromList(${i})" class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[10px]" title="Putar"><i class="fa-solid fa-play"></i></button>
+              <button type="button" onclick="populateMusicFormForEdit('${m.id}')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold text-[10px]" title="Edit"><i class="fa-solid fa-pen"></i></button>
+              <button type="button" onclick="deleteMusicTrack('${m.id}')" class="px-2 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold text-[10px]" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAdminMusicTable() {
+      const box = document.getElementById('adminMusicTableContainer');
+      if (!box) return;
+      box.innerHTML = `<div class="space-y-2.5">
+        ${appState.playlist.map((m, idx) => {
+          const ytId = extractYouTubeId(m.url);
+          return `
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-[10px]">Murotal #${idx + 1}</span>
+                  ${ytId
+                    ? `<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-black text-[10px]"><i class="fa-brands fa-youtube mr-1"></i>Link YouTube (${ytId})</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-black text-[10px]"><i class="fa-solid fa-file-audio mr-1"></i>Audio MP3</span>`
+                  }
+                  <h4 class="font-extrabold text-slate-900 truncate">${m.title}</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">${m.artist} • <span class="font-mono text-[10px] text-sky-700">${m.url.substring(0, 55)}...</span></p>
+              </div>
+              <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button onclick="selectTrackFromList(${idx})" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-[11px]"><i class="fa-solid fa-play mr-1"></i>Putar</button>
+                <button onclick="openMusicAdminModal('${m.id}')" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-[11px]"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                <button onclick="deleteMusicTrack('${m.id}')" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 font-bold text-[11px]"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>`;
+    }
+
+    // =========================================================================
+    // HELPER DOM, PENYIMPANAN LOKAL & SINKRONISASI GOOGLE APPS SCRIPT
+    // =========================================================================
+    function setElText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+    function setElHTML(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const item = document.createElement('div');
+      const color = type === 'success' ? 'bg-emerald-700' : type === 'error' ? 'bg-rose-600' : 'bg-sky-700';
+      item.className = `${color} text-white px-4 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center space-x-2 pointer-events-auto`;
+      item.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>${msg}</span>`;
+      container.appendChild(item);
+      setTimeout(() => item.remove(), 3200);
+    }
+
+    function persistLocalState() {
+      try {
+        const copy = {
+          playlist: appState.playlist,
+          santri: appState.santri,
+          ustadz: appState.ustadz,
+          setoran: appState.setoran,
+          target: appState.target,
+          pejabat: appState.pejabat
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+      } catch (e) {}
+    }
+
+    function loadInitialData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.playlist?.length) appState.playlist = parsed.playlist;
+          if (parsed.santri?.length) appState.santri = parsed.santri;
+          if (parsed.ustadz?.length) appState.ustadz = parsed.ustadz;
+          if (parsed.setoran?.length) appState.setoran = parsed.setoran;
+          if (parsed.target?.length) appState.target = parsed.target;
+          if (parsed.pejabat) appState.pejabat = { ...appState.pejabat, ...parsed.pejabat };
+        }
+      } catch (e) {}
+
+      if (isGasEnvironment()) {
+        setElHTML('syncStatusBadge', '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Memuat Google Sheet...');
+        google.script.run.withSuccessHandler(res => {
+          if (res) {
+            if (res.playlist?.length) appState.playlist = res.playlist;
+            if (res.santri?.length) appState.santri = res.santri;
+            if (res.ustadz?.length) appState.ustadz = res.ustadz;
+            if (res.setoran?.length) appState.setoran = res.setoran;
+            if (res.target?.length) appState.target = res.target;
+            if (res.pejabat && Object.keys(res.pejabat).length) {
+              appState.pejabat = { ...appState.pejabat, ...res.pejabat };
+            }
+            persistLocalState();
+            refreshAllViews();
+            renderPlaylistUI();
+            setElHTML('syncStatusBadge', '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Terhubung Spreadsheet & Drive');
+          }
+        }).getAllSimtaqData();
+      }
+    }
+
+    // Navigasi & Pemisahan Hak Akses 3 Peran
+    function getRoleAllowedTabs() {
+      if (!appState.currentUser) return [];
+      const r = appState.currentUser.role;
+      if (r === 'ortu') {
+        return [
+          { id: 'tab-overview', icon: 'fa-chart-pie', label: 'Dashboard Anak' },
+          { id: 'tab-setoran', icon: 'fa-video', label: 'Riwayat & Video Anak' },
+          { id: 'tab-target', icon: 'fa-bullseye', label: 'Target Hafalan Anak' },
+          { id: 'tab-laporan', icon: 'fa-file-lines', label: 'Rapor Hafalan Anak' }
+        ];
+      }
+      if (r === 'ustadz') {
+        return [
+          { id: 'tab-overview', icon: 'fa-chart-pie', label: 'Ringkasan & Statistik' },
+          { id: 'tab-santri', icon: 'fa-user-graduate', label: 'Data Santri' },
+          { id: 'tab-setoran', icon: 'fa-video', label: 'Input & Video Setoran' },
+          { id: 'tab-target', icon: 'fa-bullseye', label: 'Target Hafalan' },
+          { id: 'tab-laporan', icon: 'fa-file-lines', label: 'Laporan & Rapor' }
+        ];
+      }
+      return [
+        { id: 'tab-overview', icon: 'fa-chart-pie', label: 'Ringkasan & Statistik' },
+        { id: 'tab-santri', icon: 'fa-user-graduate', label: 'Data Santri' },
+        { id: 'tab-ustadz', icon: 'fa-chalkboard-user', label: 'Ustadz/Ustadzah' },
+        { id: 'tab-setoran', icon: 'fa-video', label: 'Setoran & Video' },
+        { id: 'tab-target', icon: 'fa-bullseye', label: 'Target Hafalan' },
+        { id: 'tab-laporan', icon: 'fa-file-lines', label: 'Laporan & Rapor' },
+        { id: 'tab-musik', icon: 'fa-book-quran', label: 'Kelola Murotal' },
+        { id: 'tab-gas', icon: 'fa-code', label: 'Pengaturan & GAS' }
+      ];
+    }
+
+    function renderNavigationMenus() {
+      const hamList = document.getElementById('hamburgerMenuList');
+      const dashDesktop = document.getElementById('dashDesktopTabs');
+      const dashMobileList = document.getElementById('dashMobileMenuContainer');
+      const pubDesktop = document.getElementById('publicDesktopNav');
+
+      if (!appState.currentUser) {
+        if (pubDesktop) pubDesktop.classList.remove('md:hidden');
+        if (hamList) {
+          hamList.innerHTML = `
+            <button onclick="switchView('beranda'); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-50 flex items-center space-x-2.5"><i class="fa-solid fa-house w-4 text-emerald-600"></i><span>Beranda Utama</span></button>
+            <button onclick="switchView('tentang'); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-50 flex items-center space-x-2.5"><i class="fa-solid fa-circle-info w-4 text-emerald-600"></i><span>Tentang Program</span></button>
+            <button onclick="switchView('fitur'); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-50 flex items-center space-x-2.5"><i class="fa-solid fa-layer-group w-4 text-emerald-600"></i><span>Fitur Unggulan</span></button>
+            <button onclick="switchView('statistik'); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-50 flex items-center space-x-2.5"><i class="fa-solid fa-chart-simple w-4 text-emerald-600"></i><span>Statistik Capaian</span></button>
+            <button onclick="openLoginModal(); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold bg-emerald-50 text-emerald-800 flex items-center space-x-2.5"><i class="fa-solid fa-right-to-bracket w-4 text-emerald-700"></i><span>Masuk Sistem SIMTAQ</span></button>
+          `;
+        }
+        return;
+      }
+
+      if (pubDesktop) pubDesktop.classList.add('md:hidden');
+      const tabs = getRoleAllowedTabs();
+
+      if (hamList) {
+        hamList.innerHTML = tabs.map(t => `
+          <button onclick="switchDashTab('${t.id}'); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${appState.activeDashTab === t.id ? 'bg-emerald-50 text-emerald-800 font-extrabold' : 'text-slate-700 hover:bg-slate-50'} flex items-center space-x-2.5">
+            <i class="fa-solid ${t.icon} w-4 text-emerald-600"></i><span>${t.label}</span>
+          </button>
+        `).join('') + `
+          <button onclick="handleLogout(); closeHamburgerMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold text-rose-600 hover:bg-rose-50 flex items-center space-x-2.5">
+            <i class="fa-solid fa-power-off w-4"></i><span>Keluar Akun</span>
+          </button>
+        `;
+      }
+
+      if (dashDesktop) {
+        dashDesktop.innerHTML = tabs.map(t => `
+          <button onclick="switchDashTab('${t.id}')" class="px-4 py-2.5 rounded-xl text-xs font-extrabold border transition flex items-center space-x-2 ${appState.activeDashTab === t.id ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+            <i class="fa-solid ${t.icon}"></i><span>${t.label}</span>
+          </button>
+        `).join('');
+      }
+
+      if (dashMobileList) {
+        dashMobileList.innerHTML = tabs.map(t => `
+          <button onclick="switchDashTab('${t.id}'); closeDashMobileMenu();" class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold ${appState.activeDashTab === t.id ? 'bg-emerald-700 text-white' : 'text-slate-700 hover:bg-slate-100'} flex items-center space-x-2.5">
+            <i class="fa-solid ${t.icon} w-4"></i><span>${t.label}</span>
+          </button>
+        `).join('');
+      }
+
+      const activeObj = tabs.find(x => x.id === appState.activeDashTab) || tabs[0];
+      if (activeObj) setElText('activeDashMenuLabel', 'Menu: ' + activeObj.label);
+    }
+
+    function toggleHamburgerMenu() {
+      const box = document.getElementById('hamburgerDropdown');
+      const icon = document.getElementById('hamburgerIcon');
+      if (box) box.classList.toggle('hidden');
+      if (icon) {
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-xmark');
+      }
+    }
+    function closeHamburgerMenu() {
+      const box = document.getElementById('hamburgerDropdown');
+      const icon = document.getElementById('hamburgerIcon');
+      if (box) box.classList.add('hidden');
+      if (icon) {
+        icon.classList.add('fa-bars');
+        icon.classList.remove('fa-xmark');
+      }
+    }
+
+    function toggleDashMobileMenu() {
+      const el = document.getElementById('dashMobileMenuContainer');
+      if (el) el.classList.toggle('hidden');
+    }
+    function closeDashMobileMenu() {
+      const el = document.getElementById('dashMobileMenuContainer');
+      if (el) el.classList.add('hidden');
+    }
+
+    function handleLogoClick() {
+      if (appState.currentUser) switchView('dashboard');
+      else switchView('beranda');
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchDashTab(tabId) {
+      appState.activeDashTab = tabId;
+      document.querySelectorAll('.dash-content').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+      renderNavigationMenus();
+    }
+
+    // Login & Hak Akses
+    let currentLoginRole = 'ortu';
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+      switchLoginRole(currentLoginRole);
+    }
+    function openLoginWithRole(role) {
+      currentLoginRole = role;
+      openLoginModal();
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function switchLoginRole(role) {
+      currentLoginRole = role;
+      ['ortu', 'ustadz', 'admin'].forEach(r => {
+        const btn = document.getElementById('roleBtn' + r.charAt(0).toUpperCase() + r.slice(1));
+        if (btn) {
+          btn.className = r === role
+            ? 'py-2.5 rounded-xl bg-white text-emerald-800 shadow-xs transition font-extrabold'
+            : 'py-2.5 rounded-xl text-slate-600 transition font-bold';
+        }
+      });
+
+      const input = document.getElementById('loginInputVal');
+      if (role === 'ortu') {
+        setElText('loginLabelText', 'NIS Santri (Nomor Induk Siswa)');
+        if (input) input.value = appState.santri[0]?.nis || '4334345';
+        setElHTML('loginHintText', 'Masukkan NIS putra/putri Anda (Contoh: <strong>4334345</strong>)');
+        setElText('roleSubmitName', 'Orang Tua');
+      } else if (role === 'ustadz') {
+        setElText('loginLabelText', 'NIP / Nama Ustadz atau Ustadzah');
+        if (input) input.value = appState.ustadz[0]?.nip || '198201012005011001';
+        setElHTML('loginHintText', 'Masukkan NIP atau Nama Ustadz/Ustadzah pembimbing');
+        setElText('roleSubmitName', 'Ustadz/Ustadzah');
+      } else {
+        setElText('loginLabelText', 'Kode Akses Administrator');
+        if (input) input.value = 'admin2026';
+        setElHTML('loginHintText', 'Kode akses standar Admin: <strong>admin2026</strong>');
+        setElText('roleSubmitName', 'Admin');
+      }
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const val = document.getElementById('loginInputVal').value.trim();
+
+      if (currentLoginRole === 'ortu') {
+        const s = appState.santri.find(x => String(x.nis) === String(val));
+        if (!s) {
+          showToast('NIS Santri tidak ditemukan!', 'error');
+          return;
+        }
+        appState.currentUser = { role: 'ortu', name: 'Orang Tua (' + s.nama + ')', nis: s.nis, santriId: s.id };
+      } else if (currentLoginRole === 'ustadz') {
+        const u = appState.ustadz.find(x => x.nip === val || x.nama.toLowerCase().includes(val.toLowerCase())) || appState.ustadz[0];
+        appState.currentUser = { role: 'ustadz', name: u ? u.nama : 'Ustadz/Ustadzah Pembimbing', nis: '' };
+      } else {
+        if (val !== 'admin2026' && val !== 'admin') {
+          showToast('Kode akses Admin salah! Gunakan: admin2026', 'error');
+          return;
+        }
+        appState.currentUser = { role: 'admin', name: 'Administrator SIMTAQ', nis: '' };
+      }
+
+      closeLoginModal();
+      applyUserPermissions();
+      switchView('dashboard');
+      switchDashTab('tab-overview');
+      refreshAllViews();
+      showToast('Selamat datang, ' + appState.currentUser.name);
+    }
+
+    function applyUserPermissions() {
+      const role = appState.currentUser?.role || null;
+      const isAdmin = role === 'admin';
+
+      if (appState.currentUser) {
+        setElText('welcomeUserText', 'Selamat Datang, ' + appState.currentUser.name);
+        setElText('userRoleBadge', isAdmin ? 'Administrator' : role === 'ustadz' ? 'Ustadz / Ustadzah' : 'Orang Tua Santri');
+        setElText('welcomeSubText',
+          role === 'ortu'
+            ? 'Pantau progres hafalan, rekaman video setoran, dan rapor putra/putri Anda.'
+            : role === 'ustadz'
+              ? 'Kelola input setoran hafalan, rekam video santri, dan evaluasi target.'
+              : 'Hak akses penuh manajemen Santri, Ustadz/Ustadzah, Link YouTube Murotal, Pimpinan, dan GAS.'
+        );
+      }
+
+      const show = (id, cond) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !cond);
+      };
+
+      show('btnQuickSetoran', isAdmin || role === 'ustadz');
+      show('btnQuickMusic', isAdmin);
+      show('btnQuickPejabat', isAdmin);
+      show('btnAddSantri', isAdmin);
+      show('btnAddUstadz', isAdmin);
+      show('btnSetoranTabAction', isAdmin || role === 'ustadz');
+      show('btnAddTarget', isAdmin || role === 'ustadz');
+
+      // Tombol Kelola Murotal di Panel Audio Atas hanya untuk Admin
+      show('btnAdminManageMusic', isAdmin);
+      show('btnDrawerAddMusic', isAdmin);
+
+      if (appState.currentUser) {
+        setElHTML('authHeaderContainer', `
+          <div class="flex items-center space-x-1.5">
+            <span class="hidden sm:inline text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">${appState.currentUser.name}</span>
+            <button onclick="handleLogout()" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-extrabold border border-rose-200 hover:bg-rose-100" title="Keluar"><i class="fa-solid fa-power-off"></i></button>
+          </div>
+        `);
+      }
+
+      renderNavigationMenus();
+    }
+
+    function handleLogout() {
+      appState.currentUser = null;
+      applyUserPermissions();
+      setElHTML('authHeaderContainer', `
+        <button onclick="openLoginModal()" class="px-3.5 py-2 rounded-xl bg-brand-gradient text-white text-xs font-extrabold shadow-sm hover:opacity-95 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-right-to-bracket"></i><span>Masuk</span>
+        </button>
+      `);
+      renderNavigationMenus();
+      switchView('beranda');
+      showToast('Anda telah keluar dari sistem.');
+    }
+
+    // Render Seluruh Komponen (Responsif Kartu di HP & Tabel di Laptop)
+    function refreshAllViews() {
+      const isOrtu = appState.currentUser?.role === 'ortu';
+      const activeSantri = isOrtu ? appState.santri.filter(s => s.nis === appState.currentUser.nis) : appState.santri;
+      const activeSetoran = isOrtu ? appState.setoran.filter(s => s.nis === appState.currentUser.nis) : appState.setoran;
+      const activeTarget = isOrtu ? appState.target.filter(t => t.nis === appState.currentUser.nis) : appState.target;
+
+      const avg = activeSetoran.length
+        ? (activeSetoran.reduce((acc, cur) => acc + Number(cur.nilai || 0), 0) / activeSetoran.length).toFixed(1)
+        : '0.0';
+
+      setElText('statSantriCount', appState.santri.length);
+      setElText('statUstadzCount', appState.ustadz.length);
+      setElText('statSetoranCount', appState.setoran.length);
+      setElText('statAvgScore', avg);
+
+      setElText('pubSantri', appState.santri.length);
+      setElText('pubUstadz', appState.ustadz.length);
+      setElText('pubSetoran', appState.setoran.length);
+      setElText('pubAvg', avg);
+
+      setElText('dashCardSantri', activeSantri.length);
+      setElText('dashCardUstadz', appState.ustadz.length);
+      setElText('dashCardSetoran', activeSetoran.length);
+      setElText('dashCardAvgNilai', avg);
+      setElText('dashCardTargetSelesai', activeTarget.filter(t => t.status === 'Selesai').length);
+      setElText('dashCardVideoCount', activeSetoran.filter(s => s.hasVideo).length);
+
+      const lancar = activeSetoran.filter(s => s.nilai >= 90).length;
+      const cukup = activeSetoran.filter(s => s.nilai >= 75 && s.nilai < 90).length;
+      const perbaikan = activeSetoran.filter(s => s.nilai < 75).length;
+      setElText('countLancar', lancar);
+      setElText('countCukup', cukup);
+      setElText('countPerbaikan', perbaikan);
+      setElText('distPercent', activeSetoran.length ? Math.round((lancar / activeSetoran.length) * 100) + '%' : '0%');
+
+      renderMonthlyChart(activeSetoran);
+      renderSetoranResponsive('recentSetoranContainer', activeSetoran.slice(0, 5), false);
+      renderSetoranResponsive('fullSetoranTableContainer', activeSetoran, true);
+      renderSantriResponsive(activeSantri);
+      renderUstadzResponsive(appState.ustadz);
+      renderTargetResponsive(activeTarget);
+      populateAllDropdowns(activeSantri);
+      renderLaporanRapor();
+      renderPlaylistUI();
+      populateGasCodeBoxes();
+    }
+
+    function renderMonthlyChart(list) {
+      const box = document.getElementById('monthlyBarChart');
+      if (!box) return;
+      const counts = new Array(12).fill(0);
+      list.forEach(item => {
+        const parts = String(item.tanggal || '').split('/');
+        if (parts.length === 3) {
+          const m = parseInt(parts[1], 10) - 1;
+          if (m >= 0 && m < 12) counts[m]++;
+        }
+      });
+      const maxVal = Math.max(...counts, 4);
+      box.innerHTML = counts.map(c => {
+        const h = Math.max(Math.round((c / maxVal) * 100), 8);
+        return `<div class="flex-1 flex flex-col items-center justify-end h-full">
+          <span class="text-[9px] font-bold text-slate-500 mb-1">${c || ''}</span>
+          <div class="w-full max-w-[22px] rounded-t-lg bg-gradient-to-t from-emerald-700 to-sky-500" style="height:${h}%"></div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderSetoranResponsive(containerId, list, allowDelete) {
+      const box = document.getElementById(containerId);
+      if (!box) return;
+      if (!list.length) {
+        box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada data setoran hafalan.</p>`;
+        return;
+      }
+      const canManage = allowDelete && (appState.currentUser?.role === 'admin' || appState.currentUser?.role === 'ustadz');
+
+      const mobileCards = `<div class="md:hidden space-y-3">
+        ${list.map(s => `
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2 text-xs">
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <h4 class="font-extrabold text-slate-900">${s.santriNama}</h4>
+                <p class="text-[11px] text-slate-500">${s.tanggal} • ${s.ustadz}</p>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black">Nilai: ${s.nilai}</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-[11px]">
+              <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-bold">Surat ${s.surat} : ${s.ayat}</span>
+              <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 font-bold">Juz ${s.juz}</span>
+            </div>
+            ${s.catatan ? `<p class="text-[11px] text-slate-600 italic">"${s.catatan}"</p>` : ''}
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200/70">
+              ${s.hasVideo ? `<button onclick="playVideo('${s.id}')" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-[11px] flex items-center space-x-1"><i class="fa-solid fa-circle-play"></i><span>Putar Video Setoran</span></button>` : `<span class="text-[11px] text-slate-400">Tanpa Video</span>`}
+              ${canManage ? `<button onclick="deleteSetoran('${s.id}')" class="p-1.5 rounded-lg bg-rose-50 text-rose-600"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+
+      const desktopTable = `<div class="hidden md:block">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-700 font-extrabold uppercase text-[10px]">
+            <tr>
+              <th class="p-3">Tanggal</th>
+              <th class="p-3">Nama Santri</th>
+              <th class="p-3">Surat &amp; Ayat</th>
+              <th class="p-3">Juz</th>
+              <th class="p-3">Nilai</th>
+              <th class="p-3">Ustadz/Ustadzah</th>
+              <th class="p-3">Video Setoran</th>
+              ${canManage ? '<th class="p-3">Aksi</th>' : ''}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${list.map(s => `
+              <tr>
+                <td class="p-3 font-semibold text-slate-600">${s.tanggal}</td>
+                <td class="p-3 font-extrabold text-slate-900">${s.santriNama}</td>
+                <td class="p-3 font-semibold">${s.surat} (${s.ayat})</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">Juz ${s.juz}</span></td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-black">${s.nilai}</span></td>
+                <td class="p-3 text-slate-600">${s.ustadz}</td>
+                <td class="p-3">${s.hasVideo ? `<button onclick="playVideo('${s.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-bold hover:bg-rose-100"><i class="fa-solid fa-play mr-1"></i>Putar Video</button>` : '-'}</td>
+                ${canManage ? `<td class="p-3"><button onclick="deleteSetoran('${s.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>` : ''}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+      box.innerHTML = mobileCards + desktopTable;
+    }
+
+    function renderSantriResponsive(list) {
+      const box = document.getElementById('santriTableContainer');
+      if (!box) return;
+      const isAdmin = appState.currentUser?.role === 'admin';
+
+      const mobileCards = `<div class="md:hidden space-y-3">
+        ${list.map(s => `
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-extrabold text-slate-900">${s.nama}</h4>
+                <p class="text-[11px] text-slate-500">NIS: <strong>${s.nis}</strong> • Kelas ${s.kelas} (${s.jk})</p>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">Juz ${s.juz}</span>
+            </div>
+            <p class="text-[11px] text-slate-600"><i class="fa-solid fa-mosque text-emerald-600 mr-1"></i>${s.asrama}</p>
+            ${isAdmin ? `
+              <div class="flex gap-2 pt-2 border-t border-slate-200">
+                <button onclick="openSantriModal('${s.id}')" class="flex-1 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-[11px]"><i class="fa-solid fa-pen mr-1"></i>Edit Santri</button>
+                <button onclick="deleteSantri('${s.id}')" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 font-bold text-[11px]"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>`;
+
+      const desktopTable = `<div class="hidden md:block">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-700 font-extrabold uppercase text-[10px]">
+            <tr>
+              <th class="p-3">No</th>
+              <th class="p-3">Nama Santri</th>
+              <th class="p-3">NIS</th>
+              <th class="p-3">JK</th>
+              <th class="p-3">Kelas</th>
+              <th class="p-3">Asrama / Halaqah</th>
+              <th class="p-3">Capaian</th>
+              <th class="p-3">Status</th>
+              ${isAdmin ? '<th class="p-3">Aksi Edit / Hapus</th>' : ''}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${list.map((s, i) => `
+              <tr>
+                <td class="p-3 font-bold text-slate-500">${i + 1}</td>
+                <td class="p-3 font-extrabold text-slate-900">${s.nama}</td>
+                <td class="p-3 font-mono font-bold">${s.nis}</td>
+                <td class="p-3">${s.jk}</td>
+                <td class="p-3">${s.kelas}</td>
+                <td class="p-3">${s.asrama}</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">Juz ${s.juz}</span></td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">${s.status}</span></td>
+                ${isAdmin ? `
+                  <td class="p-3 space-x-1">
+                    <button onclick="openSantriModal('${s.id}')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold hover:bg-amber-200"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                    <button onclick="deleteSantri('${s.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold hover:bg-rose-200"><i class="fa-solid fa-trash"></i></button>
+                  </td>
+                ` : ''}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+      box.innerHTML = mobileCards + desktopTable;
+    }
+
+    function renderUstadzResponsive(list) {
+      const box = document.getElementById('ustadzTableContainer');
+      if (!box) return;
+      const isAdmin = appState.currentUser?.role === 'admin';
+
+      const mobileCards = `<div class="md:hidden space-y-3">
+        ${list.map(u => `
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-extrabold text-slate-900">${u.nama}</h4>
+                <p class="text-[11px] text-slate-500">NIP/NIY: ${u.nip}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px]">${u.halaqah}</span>
+            </div>
+            <p class="text-[11px] text-slate-600">${u.lembaga} • WA: ${u.kontak}</p>
+            ${isAdmin ? `
+              <div class="flex gap-2 pt-2 border-t border-slate-200">
+                <button onclick="openUstadzModal('${u.id}')" class="flex-1 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-[11px]"><i class="fa-solid fa-pen mr-1"></i>Edit Ustadz/h</button>
+                <button onclick="deleteUstadz('${u.id}')" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 font-bold text-[11px]"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>`;
+
+      const desktopTable = `<div class="hidden md:block">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-700 font-extrabold uppercase text-[10px]">
+            <tr>
+              <th class="p-3">No</th>
+              <th class="p-3">Nama Ustadz / Ustadzah</th>
+              <th class="p-3">NIP / NIY</th>
+              <th class="p-3">Lembaga</th>
+              <th class="p-3">Halaqah Binaan</th>
+              <th class="p-3">Kontak WA</th>
+              ${isAdmin ? '<th class="p-3">Aksi Edit / Hapus</th>' : ''}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${list.map((u, i) => `
+              <tr>
+                <td class="p-3 font-bold text-slate-500">${i + 1}</td>
+                <td class="p-3 font-extrabold text-slate-900">${u.nama}</td>
+                <td class="p-3 font-mono">${u.nip}</td>
+                <td class="p-3">${u.lembaga}</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-bold">${u.halaqah}</span></td>
+                <td class="p-3">${u.kontak}</td>
+                ${isAdmin ? `
+                  <td class="p-3 space-x-1">
+                    <button onclick="openUstadzModal('${u.id}')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold hover:bg-amber-200"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                    <button onclick="deleteUstadz('${u.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold hover:bg-rose-200"><i class="fa-solid fa-trash"></i></button>
+                  </td>
+                ` : ''}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+      box.innerHTML = mobileCards + desktopTable;
+    }
+
+    function renderTargetResponsive(list) {
+      const box = document.getElementById('targetTableContainer');
+      if (!box) return;
+      const canEdit = appState.currentUser?.role === 'admin' || appState.currentUser?.role === 'ustadz';
+
+      if (!list.length) {
+        box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada target hafalan.</p>`;
+        return;
+      }
+
+      box.innerHTML = `<div class="space-y-2.5">
+        ${list.map(t => `
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
+            <div>
+              <h4 class="font-extrabold text-slate-900">${t.santriNama} <span class="text-slate-400 font-semibold">(${t.kelas})</span></h4>
+              <p class="text-slate-700 font-bold mt-0.5"><i class="fa-solid fa-bullseye text-emerald-600 mr-1"></i>${t.target}</p>
+              <p class="text-[11px] text-slate-500">Batas Waktu: ${t.tanggalTarget}</p>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button ${canEdit ? `onclick="toggleTargetStatus('${t.id}')"` : ''} class="px-3 py-1 rounded-full font-extrabold text-[11px] ${t.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${t.status}
+              </button>
+              ${canEdit ? `<button onclick="deleteTarget('${t.id}')" class="p-1.5 rounded-lg bg-rose-100 text-rose-600"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    function populateAllDropdowns(activeSantri) {
+      const sSetoran = document.getElementById('setoranSantriId');
+      const sTarget = document.getElementById('formTargetSantri');
+      const sLaporan = document.getElementById('selectLaporanSantri');
+      const sUstadz = document.getElementById('setoranUstadz');
+
+      if (sSetoran) {
+        sSetoran.innerHTML = appState.santri.map(s => `<option value="${s.id}">${s.nama} (NIS: ${s.nis})</option>`).join('');
+      }
+      if (sTarget) {
+        sTarget.innerHTML = appState.santri.map(s => `<option value="${s.id}">${s.nama} (${s.kelas})</option>`).join('');
+      }
+      if (sUstadz) {
+        sUstadz.innerHTML = appState.ustadz.map(u => `<option value="${u.nama}">${u.nama}</option>`).join('');
+      }
+      if (sLaporan) {
+        const currentVal = sLaporan.value;
+        sLaporan.innerHTML = activeSantri.map(s => `<option value="${s.id}">${s.nama} (NIS: ${s.nis})</option>`).join('');
+        if (currentVal && activeSantri.some(s => s.id === currentVal)) {
+          sLaporan.value = currentVal;
+        }
+      }
+    }
+
+    function renderLaporanRapor() {
+      const sel = document.getElementById('selectLaporanSantri');
+      const sId = sel?.value;
+      const santri = appState.santri.find(s => s.id === sId) || appState.santri[0];
+      if (!santri) return;
+
+      setElText('repNamaSantri', santri.nama);
+      setElText('repNISSantri', santri.nis);
+      setElText('repKelasSantri', `${santri.kelas} / ${santri.jk}`);
+      setElText('repAsramaSantri', santri.asrama);
+      setElText('repJuzSantri', `Juz ${santri.juz} (${santri.status})`);
+      setElText('repKoordinatorNama', appState.pejabat.koordinatorUstadzNama);
+
+      setElText('repSignYayasanNama', appState.pejabat.pimpinanYayasanNama);
+      setElText('repSignYayasanJabatan', appState.pejabat.pimpinanYayasanJabatan);
+      setElText('repSignKepalaNama', appState.pejabat.kepalaMadrasahNama);
+      setElText('repSignKepalaNip', appState.pejabat.kepalaMadrasahNip);
+
+      const list = appState.setoran.filter(x => x.nis === santri.nis);
+      const container = document.getElementById('reportSetoranListContainer');
+      if (!container) return;
+
+      if (!list.length) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center border border-slate-200 rounded-xl">Belum ada riwayat setoran untuk santri ini.</p>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="space-y-2">
+        ${list.map((st, idx) => `
+          <div class="p-3 rounded-xl border border-slate-200 text-xs flex flex-col sm:flex-row justify-between gap-2">
+            <div>
+              <span class="font-bold text-slate-500">${idx + 1}. [${st.tanggal}]</span>
+              <strong class="text-slate-900 ml-1">Surat ${st.surat} Ayat ${st.ayat} (Juz ${st.juz})</strong>
+              <p class="text-[11px] text-slate-600 mt-0.5">Pembimbing: ${st.ustadz} • Catatan: ${st.catatan || 'Lancar'}</p>
+            </div>
+            <div class="font-black text-emerald-700 shrink-0">Nilai: ${st.nilai}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    // CRUD Santri (Tambah & Edit)
+    function openSantriModal(id = null) {
+      document.getElementById('editSantriId').value = id || '';
+      setElText('santriModalTitle', id ? 'Edit Data Santri' : 'Tambah Santri Baru');
+      if (id) {
+        const s = appState.santri.find(x => x.id === id);
+        if (s) {
+          document.getElementById('formSantriNama').value = s.nama;
+          document.getElementById('formSantriNis').value = s.nis;
+          document.getElementById('formSantriJk').value = s.jk;
+          document.getElementById('formSantriKelas').value = s.kelas;
+          document.getElementById('formSantriJuz').value = s.juz;
+          document.getElementById('formSantriAsrama').value = s.asrama;
+          document.getElementById('formSantriStatus').value = s.status;
+        }
+      } else {
+        document.getElementById('formSantriNama').value = '';
+        document.getElementById('formSantriNis').value = '';
+      }
+      document.getElementById('santriModal').classList.remove('hidden');
+    }
+    function closeSantriModal() { document.getElementById('santriModal').classList.add('hidden'); }
+
+    function handleSaveSantri(e) {
+      e.preventDefault();
+      const id = document.getElementById('editSantriId').value || ('SNT-' + Date.now());
+      const obj = {
+        id,
+        nama: document.getElementById('formSantriNama').value.trim(),
+        nis: document.getElementById('formSantriNis').value.trim(),
+        jk: document.getElementById('formSantriJk').value,
+        kelas: document.getElementById('formSantriKelas').value.trim(),
+        juz: Number(document.getElementById('formSantriJuz').value),
+        asrama: document.getElementById('formSantriAsrama').value.trim(),
+        status: document.getElementById('formSantriStatus').value
+      };
+
+      const idx = appState.santri.findIndex(x => x.id === id);
+      if (idx >= 0) {
+        appState.santri[idx] = obj;
+        appState.setoran.forEach(st => { if (st.santriId === id) { st.santriNama = obj.nama; st.nis = obj.nis; } });
+        appState.target.forEach(tg => { if (tg.santriId === id) { tg.santriNama = obj.nama; tg.nis = obj.nis; tg.kelas = obj.kelas; } });
+      } else {
+        appState.santri.push(obj);
+      }
+
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.upsertSantriGAS(obj);
+      closeSantriModal();
+      refreshAllViews();
+      showToast('Data santri berhasil disimpan!');
+    }
+
+    function deleteSantri(id) {
+      appState.santri = appState.santri.filter(x => x.id !== id);
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.deleteRecordByIdGAS('Data_Santri', id);
+      refreshAllViews();
+      showToast('Data santri dihapus.');
+    }
+
+    // CRUD Ustadz/Ustadzah
+    function openUstadzModal(id = null) {
+      document.getElementById('editUstadzId').value = id || '';
+      setElText('ustadzModalTitle', id ? 'Edit Data Ustadz/Ustadzah' : 'Tambah Ustadz/Ustadzah');
+      if (id) {
+        const u = appState.ustadz.find(x => x.id === id);
+        if (u) {
+          document.getElementById('formUstadzNama').value = u.nama;
+          document.getElementById('formUstadzNip').value = u.nip;
+          document.getElementById('formUstadzLembaga').value = u.lembaga;
+          document.getElementById('formUstadzHalaqah').value = u.halaqah;
+          document.getElementById('formUstadzKontak').value = u.kontak;
+          document.getElementById('formUstadzStatus').value = u.status;
+        }
+      } else {
+        document.getElementById('formUstadzNama').value = '';
+        document.getElementById('formUstadzNip').value = '';
+      }
+      document.getElementById('ustadzModal').classList.remove('hidden');
+    }
+    function closeUstadzModal() { document.getElementById('ustadzModal').classList.add('hidden'); }
+
+    function handleSaveUstadz(e) {
+      e.preventDefault();
+      const id = document.getElementById('editUstadzId').value || ('UST-' + Date.now());
+      const obj = {
+        id,
+        nama: document.getElementById('formUstadzNama').value.trim(),
+        nip: document.getElementById('formUstadzNip').value.trim(),
+        lembaga: document.getElementById('formUstadzLembaga').value,
+        halaqah: document.getElementById('formUstadzHalaqah').value.trim(),
+        kontak: document.getElementById('formUstadzKontak').value.trim(),
+        status: document.getElementById('formUstadzStatus').value
+      };
+
+      const idx = appState.ustadz.findIndex(x => x.id === id);
+      if (idx >= 0) appState.ustadz[idx] = obj;
+      else appState.ustadz.push(obj);
+
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.upsertUstadzGAS(obj);
+      closeUstadzModal();
+      refreshAllViews();
+      showToast('Data Ustadz/Ustadzah berhasil disimpan!');
+    }
+
+    function deleteUstadz(id) {
+      appState.ustadz = appState.ustadz.filter(x => x.id !== id);
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.deleteRecordByIdGAS('Data_Ustadz', id);
+      refreshAllViews();
+      showToast('Data Ustadz/Ustadzah dihapus.');
+    }
+
+    // CRUD Target Hafalan
+    function openTargetModal() { document.getElementById('targetModal').classList.remove('hidden'); }
+    function closeTargetModal() { document.getElementById('targetModal').classList.add('hidden'); }
+
+    function handleSaveTarget(e) {
+      e.preventDefault();
+      const sId = document.getElementById('formTargetSantri').value;
+      const s = appState.santri.find(x => x.id === sId) || appState.santri[0];
+      const d = document.getElementById('formTargetTanggal').value.split('-');
+      const tgl = d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : d.join('/');
+
+      const obj = {
+        id: 'TRG-' + Date.now(),
+        santriId: s.id,
+        nis: s.nis,
+        santriNama: s.nama,
+        kelas: s.kelas,
+        target: document.getElementById('formTargetNama').value.trim(),
+        tanggalTarget: tgl,
+        status: document.getElementById('formTargetStatus').value
+      };
+
+      appState.target.unshift(obj);
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.upsertTargetGAS(obj);
+      closeTargetModal();
+      refreshAllViews();
+      showToast('Target hafalan berhasil ditambahkan!');
+    }
+
+    function toggleTargetStatus(id) {
+      const t = appState.target.find(x => x.id === id);
+      if (!t) return;
+      t.status = t.status === 'Selesai' ? 'Proses' : 'Selesai';
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.upsertTargetGAS(t);
+      refreshAllViews();
+      showToast('Status target diperbarui menjadi: ' + t.status);
+    }
+
+    function deleteTarget(id) {
+      appState.target = appState.target.filter(x => x.id !== id);
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.deleteRecordByIdGAS('Target_Hafalan', id);
+      refreshAllViews();
+      showToast('Target hafalan dihapus.');
+    }
+
+    // Edit Nama Pimpinan
+    function openPejabatModal() {
+      document.getElementById('formKepalaNama').value = appState.pejabat.kepalaMadrasahNama;
+      document.getElementById('formKepalaNip').value = appState.pejabat.kepalaMadrasahNip;
+      document.getElementById('formYayasanNama').value = appState.pejabat.pimpinanYayasanNama;
+      document.getElementById('formYayasanJabatan').value = appState.pejabat.pimpinanYayasanJabatan;
+      document.getElementById('formKoordinatorNama').value = appState.pejabat.koordinatorUstadzNama;
+      document.getElementById('formKoordinatorJabatan').value = appState.pejabat.koordinatorUstadzJabatan;
+      document.getElementById('pejabatModal').classList.remove('hidden');
+    }
+    function closePejabatModal() { document.getElementById('pejabatModal').classList.add('hidden'); }
+
+    function handleSavePejabat(e) {
+      e.preventDefault();
+      appState.pejabat = {
+        kepalaMadrasahNama: document.getElementById('formKepalaNama').value.trim(),
+        kepalaMadrasahNip: document.getElementById('formKepalaNip').value.trim(),
+        pimpinanYayasanNama: document.getElementById('formYayasanNama').value.trim(),
+        pimpinanYayasanJabatan: document.getElementById('formYayasanJabatan').value.trim(),
+        koordinatorUstadzNama: document.getElementById('formKoordinatorNama').value.trim(),
+        koordinatorUstadzJabatan: document.getElementById('formKoordinatorJabatan').value.trim()
+      };
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.savePejabatGAS(appState.pejabat);
+      closePejabatModal();
+      refreshAllViews();
+      showToast('Data pimpinan berhasil diperbarui!');
+    }
+
+    // Studio Kamera Rekam Video Setoran
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let currentRecordedBase64 = null;
+    let activeCameraStream = null;
+
+    function openSetoranModal() {
+      currentRecordedBase64 = null;
+      document.getElementById('setoranModal').classList.remove('hidden');
+    }
+    function closeSetoranModal() {
+      document.getElementById('setoranModal').classList.add('hidden');
+      stopCamera();
+    }
+
+    async function startCamera() {
+      try {
+        activeCameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const v = document.getElementById('cameraPreview');
+        if (v) v.srcObject = activeCameraStream;
+        document.getElementById('cameraPlaceholder')?.classList.add('hidden');
+        document.getElementById('btnStartRec')?.removeAttribute('disabled');
+        setElText('recordingStatus', 'Kamera Aktif');
+      } catch (err) {
+        showToast('Kamera tidak tersedia, silakan pilih file video dari galeri.', 'info');
+      }
+    }
+
+    function stopCamera() {
+      if (activeCameraStream) {
+        activeCameraStream.getTracks().forEach(t => t.stop());
+        activeCameraStream = null;
+      }
+      document.getElementById('cameraPlaceholder')?.classList.remove('hidden');
+    }
+
+    function startRecording() {
+      if (!activeCameraStream) return;
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(activeCameraStream);
+      mediaRecorder.ondataavailable = e => { if (e.data?.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => { currentRecordedBase64 = reader.result; };
+        reader.readAsDataURL(blob);
+      };
+      mediaRecorder.start();
+      document.getElementById('btnStartRec')?.setAttribute('disabled', 'true');
+      document.getElementById('btnStopRec')?.removeAttribute('disabled');
+      setElText('recordingStatus', 'Merekam...');
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        document.getElementById('btnStartRec')?.removeAttribute('disabled');
+        document.getElementById('btnStopRec')?.setAttribute('disabled', 'true');
+        setElText('recordingStatus', 'Video Tersimpan');
+        showToast('Video selesai direkam!');
+      }
+    }
+
+    function handleVideoFileUpload(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        currentRecordedBase64 = reader.result;
+        setElText('recordingStatus', 'File Video Siap');
+        showToast('File video siap diunggah: ' + file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleSaveSetoran(e) {
+      e.preventDefault();
+      const sId = document.getElementById('setoranSantriId').value;
+      const s = appState.santri.find(x => x.id === sId) || appState.santri[0];
+      const now = new Date();
+      const tgl = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+      const payload = {
+        id: 'STR-' + Date.now(),
+        tanggal: tgl,
+        santriId: s.id,
+        nis: s.nis,
+        santriNama: s.nama,
+        surat: document.getElementById('setoranSurat').value.trim(),
+        ayat: document.getElementById('setoranAyat').value.trim(),
+        juz: Number(document.getElementById('setoranJuz').value),
+        nilai: Number(document.getElementById('setoranNilai').value),
+        ustadz: document.getElementById('setoranUstadz').value,
+        catatan: document.getElementById('setoranCatatan').value.trim(),
+        hasVideo: true,
+        videoBlobUrl: currentRecordedBase64 || '',
+        videoBase64: currentRecordedBase64 || '',
+        videoMimeType: 'video/webm'
+      };
+
+      appState.setoran.unshift(payload);
+      persistLocalState();
+
+      if (isGasEnvironment()) {
+        showToast('Mengunggah setoran & video ke Google Drive...', 'info');
+        google.script.run.withSuccessHandler(res => {
+          if (res?.videoUrl) {
+            payload.videoBlobUrl = res.videoUrl;
+            persistLocalState();
+          }
+          showToast('Tersimpan di Google Spreadsheet & Google Drive!');
+        }).saveSetoranWithVideo(payload);
+      } else {
+        showToast('Setoran hafalan berhasil disimpan!');
+      }
+
+      closeSetoranModal();
+      refreshAllViews();
+    }
+
+    function deleteSetoran(id) {
+      appState.setoran = appState.setoran.filter(x => x.id !== id);
+      persistLocalState();
+      if (isGasEnvironment()) google.script.run.deleteRecordByIdGAS('Setoran_Hafalan', id);
+      refreshAllViews();
+      showToast('Data setoran dihapus.');
+    }
+
+    function playVideo(setoranId) {
+      const item = appState.setoran.find(x => x.id === setoranId);
+      const modal = document.getElementById('videoPlayerModal');
+      const v = document.getElementById('modalVideoElement');
+      const linkEl = document.getElementById('videoDriveExternalLink');
+      if (!modal || !v) return;
+
+      // Jeda Murotal otomatis saat memutar video setoran santri
+      if (bgMusicEl && !bgMusicEl.paused) bgMusicEl.pause();
+      if (audioState.ytReady && ytPlayerInstance && typeof ytPlayerInstance.pauseVideo === 'function') {
+        ytPlayerInstance.pauseVideo();
+      }
+
+      const url = item?.videoBlobUrl || '';
+      if (url.includes('drive.google.com')) {
+        if (linkEl) {
+          linkEl.href = url;
+          linkEl.classList.remove('hidden');
+        }
+      } else if (linkEl) {
+        linkEl.classList.add('hidden');
+      }
+
+      v.src = (url && !url.includes('drive.google.com/file')) ? url : 'https://www.w3schools.com/html/mov_bbb.mp4';
+      setElText('videoModalCaption', item ? `${item.santriNama} - Surat ${item.surat} (${item.ayat})` : 'Rekaman Video Setoran');
+      modal.classList.remove('hidden');
+      v.play().catch(() => {});
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('videoPlayerModal');
+      const v = document.getElementById('modalVideoElement');
+      if (v) { v.pause(); v.src = ''; }
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // Tab Kode GAS (`Code.gs` & `Index.html`)
+    const GAS_BACKEND_CODE = [
+      "// ============================================================================",
+      "// KODE BACKEND GOOGLE APPS SCRIPT (Code.gs) - APLIKASI SIMTAQ",
+      "// MAN 2 Kabupaten Gorontalo x Yayasan Abulyatama Indonesia Gorontalo",
+      "// Pengembang Aplikasi : Herman Susanto Buhungo, S.Pd.",
+      "// ============================================================================",
+      "",
+      "const SPREADSHEET_ID = 'TEMPEL_ID_SPREADSHEET_ANDA_DI_SINI';",
+      "const DRIVE_FOLDER_ID = 'TEMPEL_ID_FOLDER_DRIVE_ANDA_DI_SINI';",
+      "",
+      "function getSpreadsheet_() {",
+      "  if (SPREADSHEET_ID && SPREADSHEET_ID.indexOf('TEMPEL_') === -1) {",
+      "    return SpreadsheetApp.openById(SPREADSHEET_ID);",
+      "  }",
+      "  return SpreadsheetApp.getActiveSpreadsheet();",
+      "}",
+      "",
+      "function getDriveFolder_() {",
+      "  if (DRIVE_FOLDER_ID && DRIVE_FOLDER_ID.indexOf('TEMPEL_') === -1) {",
+      "    return DriveApp.getFolderById(DRIVE_FOLDER_ID);",
+      "  }",
+      "  return DriveApp.getRootFolder();",
+      "}",
+      "",
+      "function doGet() {",
+      "  initSheetsIfNeeded();",
+      "  return HtmlService.createHtmlOutputFromFile('Index')",
+      "    .setTitle('SIMTAQ - MAN 2 Kab. Gorontalo x Yayasan Abulyatama')",
+      "    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')",
+      "    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);",
+      "}",
+      "",
+      "function initSheetsIfNeeded() {",
+      "  const ss = getSpreadsheet_();",
+      "  const schema = {",
+      "    'Data_Santri': ['ID', 'NIS', 'Nama', 'JK', 'Kelas', 'Asrama', 'Juz', 'Status'],",
+      "    'Data_Ustadz': ['ID', 'NIP', 'Nama', 'Lembaga', 'Halaqah', 'Kontak', 'Status'],",
+      "    'Setoran_Hafalan': ['ID', 'Tanggal', 'SantriID', 'NIS', 'SantriNama', 'Surat', 'Ayat', 'Juz', 'Nilai', 'Ustadz', 'Catatan', 'HasVideo', 'VideoUrl'],",
+      "    'Target_Hafalan': ['ID', 'SantriID', 'NIS', 'SantriNama', 'Kelas', 'Target', 'TanggalTarget', 'Status'],",
+      "    'Musik_Latar': ['ID', 'Title', 'Artist', 'Url'],",
+      "    'Pengaturan_Pejabat': ['Key', 'Value']",
+      "  };",
+      "  Object.keys(schema).forEach(name => {",
+      "    let s = ss.getSheetByName(name);",
+      "    if (!s) {",
+      "      s = ss.insertSheet(name);",
+      "      s.appendRow(schema[name]);",
+      "      s.getRange(1, 1, 1, schema[name].length).setBackground('#0f6832').setFontColor('#ffffff').setFontWeight('bold');",
+      "    }",
+      "  });",
+      "  const musikSheet = ss.getSheetByName('Musik_Latar');",
+      "  if (musikSheet.getLastRow() <= 1) {",
+      "    musikSheet.appendRow(['MRT-01', 'Murotal QS. Ar-Rahman (Ayat 1-78)', 'Syaikh Mishary Rashid Al-Afasy', 'https://server8.mp3quran.net/afs/055.mp3']);",
+      "    musikSheet.appendRow(['MRT-02', 'Murotal QS. Al-Mulk (Penjaga dari Siksa Kubur)', 'Syaikh Mishary Rashid Al-Afasy', 'https://server8.mp3quran.net/afs/067.mp3']);",
+      "    musikSheet.appendRow(['MRT-03', 'Murotal Merdu Juz 30 (YouTube Murotal)', 'Murotal Al-Qur’an Pilihan (YouTube)', 'https://www.youtube.com/watch?v=1dn6tQ2V3pA']);",
+      "  }",
+      "}",
+      "",
+      "function getAllSimtaqData() {",
+      "  initSheetsIfNeeded();",
+      "  const ss = getSpreadsheet_();",
+      "  const read = (name) => {",
+      "    const s = ss.getSheetByName(name);",
+      "    if (!s || s.getLastRow() <= 1) return [];",
+      "    return s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).getDisplayValues();",
+      "  };",
+      "  const santri = read('Data_Santri').map(r => ({ id: r[0], nis: r[1], nama: r[2], jk: r[3], kelas: r[4], asrama: r[5], juz: Number(r[6] || 1), status: r[7] || 'Aktif' }));",
+      "  const ustadz = read('Data_Ustadz').map(r => ({ id: r[0], nip: r[1], nama: r[2], lembaga: r[3], halaqah: r[4], kontak: r[5], status: r[6] || 'Aktif' }));",
+      "  const setoran = read('Setoran_Hafalan').map(r => ({ id: r[0], tanggal: r[1], santriId: r[2], nis: r[3], santriNama: r[4], surat: r[5], ayat: r[6], juz: Number(r[7] || 1), nilai: Number(r[8] || 0), ustadz: r[9], catatan: r[10], hasVideo: r[11] === 'TRUE' || Boolean(r[12]), videoBlobUrl: r[12] || '' }));",
+      "  const target = read('Target_Hafalan').map(r => ({ id: r[0], santriId: r[1], nis: r[2], santriNama: r[3], kelas: r[4], target: r[5], tanggalTarget: r[6], status: r[7] || 'Proses' }));",
+      "  const playlist = read('Musik_Latar').map(r => ({ id: r[0], title: r[1], artist: r[2], url: r[3] }));",
+      "  const pejabat = {};",
+      "  read('Pengaturan_Pejabat').forEach(r => { if (r[0]) pejabat[r[0]] = r[1]; });",
+      "  return { santri, ustadz, setoran, target, playlist, pejabat };",
+      "}",
+      "",
+      "function upsertMusicGAS(m) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Musik_Latar');",
+      "  const data = sheet.getDataRange().getValues();",
+      "  for (let i = 1; i < data.length; i++) {",
+      "    if (String(data[i][0]) === String(m.id)) {",
+      "      sheet.getRange(i + 1, 1, 1, 4).setValues([[m.id, m.title, m.artist, m.url]]);",
+      "      return { status: 'updated' };",
+      "    }",
+      "  }",
+      "  sheet.appendRow([m.id, m.title, m.artist, m.url]);",
+      "  return { status: 'inserted' };",
+      "}",
+      "",
+      "function saveSetoranWithVideo(payload) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Setoran_Hafalan');",
+      "  let videoUrl = '';",
+      "  if (payload.videoBase64 && payload.videoBase64.indexOf('base64,') !== -1) {",
+      "    const folder = getDriveFolder_();",
+      "    const bytes = Utilities.base64Decode(payload.videoBase64.split(',')[1]);",
+      "    const cleanName = (payload.santriNama || 'Santri').replace(/[^a-zA-Z0-9]/g, '_');",
+      "    const blob = Utilities.newBlob(bytes, payload.videoMimeType || 'video/webm', 'SIMTAQ_' + payload.nis + '_' + cleanName + '_' + Date.now() + '.webm');",
+      "    const file = folder.createFile(blob);",
+      "    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);",
+      "    videoUrl = file.getUrl();",
+      "  }",
+      "  sheet.appendRow([payload.id, payload.tanggal, payload.santriId, payload.nis, payload.santriNama, payload.surat, payload.ayat, payload.juz, payload.nilai, payload.ustadz, payload.catatan, Boolean(videoUrl || payload.hasVideo), videoUrl]);",
+      "  return { status: 'success', videoUrl: videoUrl };",
+      "}",
+      "",
+      "function upsertSantriGAS(s) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Data_Santri');",
+      "  const data = sheet.getDataRange().getValues();",
+      "  for (let i = 1; i < data.length; i++) {",
+      "    if (String(data[i][0]) === String(s.id)) {",
+      "      sheet.getRange(i + 1, 1, 1, 8).setValues([[s.id, s.nis, s.nama, s.jk, s.kelas, s.asrama, s.juz, s.status]]);",
+      "      return { status: 'updated' };",
+      "    }",
+      "  }",
+      "  sheet.appendRow([s.id, s.nis, s.nama, s.jk, s.kelas, s.asrama, s.juz, s.status]);",
+      "  return { status: 'inserted' };",
+      "}",
+      "",
+      "function upsertUstadzGAS(u) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Data_Ustadz');",
+      "  const data = sheet.getDataRange().getValues();",
+      "  for (let i = 1; i < data.length; i++) {",
+      "    if (String(data[i][0]) === String(u.id)) {",
+      "      sheet.getRange(i + 1, 1, 1, 7).setValues([[u.id, u.nip, u.nama, u.lembaga, u.halaqah, u.kontak, u.status]]);",
+      "      return { status: 'updated' };",
+      "    }",
+      "  }",
+      "  sheet.appendRow([u.id, u.nip, u.nama, u.lembaga, u.halaqah, u.kontak, u.status]);",
+      "  return { status: 'inserted' };",
+      "}",
+      "",
+      "function upsertTargetGAS(t) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Target_Hafalan');",
+      "  const data = sheet.getDataRange().getValues();",
+      "  for (let i = 1; i < data.length; i++) {",
+      "    if (String(data[i][0]) === String(t.id)) {",
+      "      sheet.getRange(i + 1, 1, 1, 8).setValues([[t.id, t.santriId, t.nis, t.santriNama, t.kelas, t.target, t.tanggalTarget, t.status]]);",
+      "      return { status: 'updated' };",
+      "    }",
+      "  }",
+      "  sheet.appendRow([t.id, t.santriId, t.nis, t.santriNama, t.kelas, t.target, t.tanggalTarget, t.status]);",
+      "  return { status: 'inserted' };",
+      "}",
+      "",
+      "function deleteRecordByIdGAS(sheetName, recordId) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName(sheetName);",
+      "  if (!sheet) return { status: 'not_found' };",
+      "  const data = sheet.getDataRange().getValues();",
+      "  for (let i = data.length - 1; i >= 1; i--) {",
+      "    if (String(data[i][0]) === String(recordId)) {",
+      "      sheet.deleteRow(i + 1);",
+      "      return { status: 'deleted' };",
+      "    }",
+      "  }",
+      "  return { status: 'not_found' };",
+      "}",
+      "",
+      "function savePejabatGAS(pejabatObj) {",
+      "  initSheetsIfNeeded();",
+      "  const sheet = getSpreadsheet_().getSheetByName('Pengaturan_Pejabat');",
+      "  sheet.clearContents();",
+      "  sheet.appendRow(['Key', 'Value']);",
+      "  Object.keys(pejabatObj).forEach(k => sheet.appendRow([k, pejabatObj[k]]));",
+      "  return { status: 'success' };",
+      "}"
+    ].join("\n");
+
+    function populateGasCodeBoxes() {
+      setElText('rawCodeGsBox', GAS_BACKEND_CODE);
+      const htmlBox = document.getElementById('rawIndexHtmlBox');
+      if (htmlBox && !htmlBox.textContent) {
+        htmlBox.textContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      }
+    }
+
+    function switchGasSubTab(mode) {
+      const pGs = document.getElementById('panelCodeGs');
+      const pHtml = document.getElementById('panelIndexHtml');
+      const bGs = document.getElementById('btnSubTabGs');
+      const bHtml = document.getElementById('btnSubTabHtml');
+
+      if (mode === 'gs') {
+        pGs?.classList.remove('hidden');
+        pHtml?.classList.add('hidden');
+        if (bGs) bGs.className = 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-700 text-white';
+        if (bHtml) bHtml.className = 'px-4 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700';
+      } else {
+        pHtml?.classList.remove('hidden');
+        pGs?.classList.add('hidden');
+        if (bHtml) bHtml.className = 'px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-700 text-white';
+        if (bGs) bGs.className = 'px-4 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700';
+        setElText('rawIndexHtmlBox', "<!DOCTYPE html>\n" + document.documentElement.outerHTML);
+      }
+    }
+
+    function copyStringToClipboard(text, successMsg) {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-9999px';
+        textArea.style.left = '-9999px';
+        textArea.setAttribute('readonly', '');
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, textArea.value.length);
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (copied) {
+          showToast(successMsg || 'Kode berhasil disalin ke clipboard!');
+        } else {
+          showToast('Silakan gunakan tombol Unduh jika penyalinan dibatasi browser.', 'info');
+        }
+      } catch (err) {
+        showToast('Gagal menyalin otomatis, silakan klik tombol Unduh di sebelahnya.', 'error');
+      }
+    }
+
+    function copyTextById(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        copyStringToClipboard(el.textContent, 'Kode Code.gs berhasil disalin ke clipboard!');
+      }
+    }
+
+    function copyFullIndexHtml() {
+      const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      copyStringToClipboard(fullHtml, 'Kode lengkap Index.html berhasil disalin ke clipboard!');
+    }
+
+    function downloadFileFromBox(id, filename) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const blob = new Blob([el.textContent], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    function downloadFullIndexHtml() {
+      const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Index.html';
+      a.click();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadInitialData();
+      initAudioEngine();
+      renderNavigationMenus();
+      refreshAllViews();
+    });
+  </script>
+</body>
+</html>
